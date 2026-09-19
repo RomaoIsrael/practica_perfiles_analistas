@@ -112,6 +112,42 @@ p{margin:.4em 0}
 .tbl caption{caption-side:top;text-align:left;font-weight:600;padding-bottom:6px;color:var(--tx)}
 .tbl th,.tbl td{border:1px solid var(--br);padding:5px 10px;text-align:center}
 .tbl th{background:var(--acbg);color:var(--ac2)}
+/* Usuario, meta 80 % y estadísticas */
+.hello{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;background:var(--acbg);border-radius:12px;padding:8px 12px;margin:4px 0 8px}
+.hb{display:flex;gap:14px}.lnk{background:none;border:0;color:var(--ac2);font-weight:600;padding:8px 2px;min-height:40px;text-decoration:underline}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.frow label{display:flex;flex-direction:column;gap:4px;font-size:.86rem;color:var(--mu)}
+input[type=text]{font:inherit;font-size:16px;color:var(--tx);background:var(--bg);border:1px solid var(--br);border-radius:10px;padding:10px 12px;min-height:46px;width:100%}
+input[type=text]:focus{outline:2px solid var(--ac);outline-offset:1px}
+@media (max-width:420px){.frow{grid-template-columns:1fr}}
+.donwrap{display:flex;justify-content:center;margin:2px 0 6px}
+.donut{display:block}.donut.good{color:var(--ok)}.donut.mid{color:var(--mid)}.donut.low{color:var(--bad)}
+.pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.78rem;font-weight:700;white-space:nowrap}
+.pill.good{background:var(--okbg);color:var(--ok)}.pill.mid{background:var(--midbg);color:var(--mid)}.pill.low{background:var(--badbg);color:var(--bad)}.pill.none{background:var(--bg);color:var(--mu);border:1px solid var(--br)}
+.pill.big{font-size:1.05rem;padding:6px 20px;letter-spacing:.06em}
+.verdict{margin:4px 0}
+.blist{list-style:none;padding:0;margin:8px 0 0}
+.brow{padding:9px 0;border-bottom:1px solid var(--br)}.brow:last-child{border:0}
+.bl{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+.bn{font-weight:600;font-size:.94rem;min-width:0}
+.bar2{position:relative;height:14px;background:var(--br);border-radius:99px;overflow:visible}
+.bar2 i{display:block;height:100%;border-radius:99px;min-width:0;transition:width .4s}
+.bar2 i.good{background:var(--ok)}.bar2 i.mid{background:var(--mid)}.bar2 i.low{background:var(--bad)}.bar2 i.none{background:transparent}
+.bar2 .mk{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1px;background:var(--tx);opacity:.75;border-radius:2px;text-decoration:none}
+.bm{font-size:.82rem;color:var(--mu);margin-top:5px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.8rem;color:var(--mu);margin:6px 0 4px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.lg{width:11px;height:11px;border-radius:50%;display:inline-block}.lg.good{background:var(--ok)}.lg.mid{background:var(--mid)}.lg.low{background:var(--bad)}
+.mk2{width:3px;height:13px;background:var(--tx);opacity:.75;display:inline-block;border-radius:2px;text-decoration:none}
+.guide{list-style:none;padding:0;margin:8px 0 0}.guide li{display:flex;flex-direction:column;gap:2px;padding:8px 0;border-bottom:1px solid var(--br);overflow-wrap:anywhere}.guide li:last-child{border:0}.guide span{color:var(--mu);font-size:.86rem}
+.src{margin:8px 0 0;font-size:.86rem;color:var(--ac2);background:var(--acbg);border-radius:8px;padding:6px 10px;overflow-wrap:anywhere}
+.prio{margin:6px 0 0;padding-left:20px}.prio li{padding:3px 0}
+.spark{position:relative;display:flex;align-items:flex-end;gap:8px;height:160px;padding:22px 4px 0;border-bottom:1px solid var(--br)}
+.spark .sc{position:relative;flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0}
+.spark .sc i{display:block;width:100%;max-width:34px;border-radius:6px 6px 0 0}
+.spark .sc i.good{background:var(--ok)}.spark .sc i.mid{background:var(--mid)}.spark .sc i.low{background:var(--bad)}
+.spark small{font-size:.72rem;color:var(--mu);position:absolute;left:0;right:0;text-align:center}
+.spark .sl{position:absolute;left:0;right:0;border-top:2px dashed var(--tx);opacity:.5;text-decoration:none}
 /* Diálogo de confirmación */
 .dlg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(6,12,20,.55);display:flex;align-items:center;justify-content:center;z-index:60;padding:16px}
 .dlg-b{background:var(--card);border:1px solid var(--br);border-radius:16px;padding:18px;max-width:420px;width:100%}
@@ -1260,7 +1296,8 @@ var LIKERT=[
    ========================================================= */
 var LETTERS=['A','B','C','D','E','F'];
 var KEY='pcv2_estado';
-var S={profile:'sri',history:[],wrong:[],cats:{},imports:{},likert:null,sel:{},count:20,mode:'practice'};
+var PASS=80;
+var S={profile:'sri',user:null,history:[],wrong:[],cats:{},imports:{},likert:null,sel:{},count:20,mode:'practice'};
 var ui={view:'home',modal:null,msg:'',busy:false,session:null,result:null,lk:null,memOnly:false};
 var BYCAT={};
 QS.forEach(function(q){(BYCAT[q.cat]=BYCAT[q.cat]||[]).push(q);});
@@ -1323,32 +1360,35 @@ function normAns(a,opts){
   for(var k=0;k<n;k++){if(opts[k].trim().toLowerCase()===s.toLowerCase())return k;}
   return -1;
 }
-function mkQuestion(text,opts,ans,exp,src,i){
+function mkQuestion(text,opts,ans,exp,src,i,loc){
   opts=opts.map(function(o){return String(o).trim();}).filter(function(o){return o.length;});
   if(!text||opts.length<2||opts.length>6)return null;
   var a=normAns(ans,opts);if(a<0)return null;
-  return {id:'u'+Math.abs(hash(src+'|'+i+'|'+text)).toString(36),text:String(text).trim(),opts:opts,ans:a,exp:exp?String(exp).trim():'',imp:true,src:src};
+  return {id:'u'+Math.abs(hash(src+'|'+i+'|'+text)).toString(36),text:String(text).trim(),opts:opts,ans:a,exp:exp?String(exp).trim():'',imp:true,src:src,loc:loc||''};
 }
 function hash(s){var h=0;for(var i=0;i<s.length;i++){h=((h<<5)-h+s.charCodeAt(i))|0;}return h;}
 
 /* Preguntas escritas en texto: 1. Pregunta / a) b) c) d) / Respuesta: b / Explicación: ... */
-function parseQuestionText(text,src){
+function parseQuestionText(text,src,unit){
   var lines=text.replace(/\r/g,'').split('\n');
   var reOpt=/^\s*\(?([A-Fa-f])[\)\.:\-]\s*(.+)$/;
   var reQ=/^\s*(?:pregunta\s*)?(\d{1,3})\s*[\)\.:\-–]\s*(.+)$/i;
   var reQ2=/^\s*(?:pregunta|p)\s*[:\.\-]\s*(.+)$/i;
   var reAns=/^\s*(?:respuesta(?:\s+correcta)?|rpta\.?|clave|correcta|answer|resp\.?)\s*[:\-=]\s*\(?([A-Fa-f])\b/i;
   var reExp=/^\s*(?:explicaci[oó]n|justificaci[oó]n|retroalimentaci[oó]n|fundamento|sustento)\s*[:\-]\s*(.*)$/i;
-  var qs=[],cur=null,last=null,idx=0;
+  var qs=[],cur=null,last=null,idx=0,page=1,qn=0;
   function fin(){
     if(cur){
       if(cur.ans==null&&cur.mark!=null)cur.ans=cur.mark;
-      var q=mkQuestion(cur.q,cur.opts,cur.ans,cur.exp,src,idx++);
+      var loc=(unit==='pagina'?'página '+cur.page+' · ':'')+'pregunta n.º '+cur.qn+(unit==='linea'?' (línea '+cur.line+')':'');
+      var q=mkQuestion(cur.q,cur.opts,cur.ans,cur.exp,src,idx++,loc);
       if(q)qs.push(q);
     }
     cur=null;last=null;
   }
-  lines.forEach(function(raw){
+  function start(qtext,ln){fin();qn++;cur={q:qtext,opts:[],ans:null,exp:'',mark:null,page:page,line:ln,qn:qn};last='q';}
+  lines.forEach(function(raw,ln){
+    if(raw.indexOf('\f')>-1){page+=raw.split('\f').length-1;raw=raw.replace(/\f/g,'');}
     var line=raw.replace(/\u00a0/g,' ');if(!line.trim()){return;}
     var m;
     if((m=line.match(reAns))&&cur&&cur.opts.length>=2){cur.ans=LETTERS.indexOf(m[1].toUpperCase());last='ans';return;}
@@ -1359,8 +1399,8 @@ function parseQuestionText(text,src){
       if(/^\*/.test(t)){mark=true;t=t.replace(/^\*\s*/,'');}
       cur.opts.push(t);if(mark)cur.mark=cur.opts.length-1;last='opt';return;
     }
-    if((m=line.match(reQ))&&(!cur||cur.opts.length>=2||last==='ans'||last==='exp')){fin();cur={q:m[2],opts:[],ans:null,exp:'',mark:null};last='q';return;}
-    if((m=line.match(reQ2))){fin();cur={q:m[1],opts:[],ans:null,exp:'',mark:null};last='q';return;}
+    if((m=line.match(reQ))&&(!cur||cur.opts.length>=2||last==='ans'||last==='exp')){start(m[2],ln+1);return;}
+    if((m=line.match(reQ2))){start(m[1],ln+1);return;}
     if(!cur)return;
     if(last==='q'&&cur.opts.length===0)cur.q+=' '+line.trim();
     else if(last==='opt'&&cur.opts.length)cur.opts[cur.opts.length-1]+=' '+line.trim();
@@ -1400,7 +1440,7 @@ function parseCSVQuestions(text,src){
   var out=[];
   rows.slice(1).forEach(function(r,k){
     var opts=io.map(function(i){return r[i]||'';}),ans=r[ia];
-    var q=mkQuestion(r[iq],opts,ans,ie>=0?r[ie]:'',src,k);if(q)out.push(q);
+    var q=mkQuestion(r[iq],opts,ans,ie>=0?r[ie]:'',src,k,'fila '+(k+2));if(q)out.push(q);
   });
   return out;
 }
@@ -1417,7 +1457,7 @@ function parseJSONQuestions(text,src){
     var a=it.correcta!=null?it.correcta:(it.respuesta!=null?it.respuesta:(it.answer!=null?it.answer:(it.correct!=null?it.correct:it.ans)));
     var e=it.explicacion||it.explanation||it.exp||'';
     if(!Array.isArray(o))return;
-    var q=mkQuestion(t,o,a,e,src,k);if(q)out.push(q);
+    var q=mkQuestion(t,o,a,e,src,k,'elemento n.º '+(k+1));if(q)out.push(q);
   });
   return out;
 }
@@ -1428,20 +1468,24 @@ var NUMW='uno|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|quince|
 var RE_NUM=new RegExp('\\b((?:\\d{1,3}(?:[\\.,]\\d{3})*(?:[\\.,]\\d+)?|(?:'+NUMW+'))\\s?(?:%|por ciento|d[ií]as(?:\\s+h[aá]biles)?|a[ñn]os|meses|semanas|horas|USD|d[oó]lares|SBU|salarios?(?:\\s+b[aá]sicos?)?(?:\\s+unificados?)?|remuneraciones?(?:\\s+b[aá]sicas?)?(?:\\s+unificadas?)?|folios|copias|ejemplares|d[ií]gitos|jueces|miembros))','i');
 var RE_ART=/\b(art(?:[ií]culos?|s?\.)\s?\d+[A-Za-z]?)/i;
 var RE_CAP=/(?:^|[\s(«"])((?:[A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,}(?:\s+(?:de|del|la|las|los|y|para|en)\s+)?){2,5})/g;
-function clozeFromText(text,max,src){
-  text=text.replace(/\r/g,'').replace(/[ \t]+/g,' ');
-  var sents=[];
-  text.split(/\n+/).forEach(function(b){
-    b=b.trim();if(!b)return;
+function clozeFromText(text,max,src,unit){
+  var raws=text.replace(/\r/g,'').split('\n'),page=1,heading='',sents=[],firstLine=true;
+  raws.forEach(function(raw,ln){
+    if(raw.indexOf('\f')>-1){page+=raw.split('\f').length-1;raw=raw.replace(/\f/g,'');}
+    var b=raw.replace(/[ \t]+/g,' ').trim();if(!b)return;
+    var head=b.length<=80&&!/[\.;,:]$/.test(b)&&(/^(?:cap[ií]tulo|t[ií]tulo|secci[oó]n|art[ií]culo|art\.|unidad|tema|m[oó]dulo|parte|anexo)\b/i.test(b)||(b.length<=70&&b===b.toUpperCase()&&/[A-ZÁÉÍÓÚÑ]{3}/.test(b))||(firstLine&&b.split(' ').length<=12));
+    firstLine=false;
+    if(head){heading=b;return;}
     b=b.replace(/^(?:[\u2022\u25aa\u25cf\-\*·]|\d{1,3}[\.\)]|[a-z][\.\)])\s+/,'');
-    b.replace(/([\.!?;:])\s+(?=[A-ZÁÉÍÓÚÑ¿¡«"\(0-9])/g,'$1\n').split('\n').forEach(function(s){
-      s=s.trim();
-      if(s.length>=45&&s.length<=320&&s.split(' ').length>=7&&!/^[A-ZÁÉÍÓÚÑ\s\d\.\-]+$/.test(s)&&!/\.{4,}/.test(s))sents.push(s);
+    b.replace(/([\.!?;:])\s+(?=[A-ZÁÉÍÓÚÑ¿¡«"\(0-9])/g,'$1\n').split('\n').forEach(function(x){
+      x=x.trim();
+      if(x.length>=45&&x.length<=320&&x.split(' ').length>=7&&!/^[A-ZÁÉÍÓÚÑ\s\d\.\-]+$/.test(x)&&!/\.{4,}/.test(x))sents.push({s:x,line:ln+1,page:page,head:heading});
     });
   });
+  function locOf(so){var l=unit==='pagina'?'página '+so.page:(unit==='parrafo'?'párrafo n.º '+so.line:'línea '+so.line);return l+(so.head?' · sección «'+so.head.slice(0,60)+'»':'');}
   var cands=[],pools={num:[],art:[],cap:[],word:[]};
-  sents.forEach(function(s,i){
-    var found=[];
+  sents.forEach(function(so,i){
+    var s=so.s,found=[];
     var m=s.match(RE_NUM);if(m){var t=m[1];found.push({type:'num',term:t});pools.num.push(t);}
     m=s.match(RE_ART);if(m){found.push({type:'art',term:m[1]});pools.art.push(m[1]);}
     var cm,seenCap=false;RE_CAP.lastIndex=0;
@@ -1450,7 +1494,7 @@ function clozeFromText(text,max,src){
     var words=s.split(/[\s,;:\(\)«»"]+/).filter(function(w){var c=w.replace(/[\.\?!]/g,'');return c.length>=9&&/^[a-záéíóúñ]+$/.test(c)&&!STOP[noAcc(c)];});
     words.forEach(function(w){pools.word.push(w.replace(/[\.\?!]/g,''));});
     if(words.length){found.push({type:'word',term:words[Math.floor(words.length/2)].replace(/[\.\?!]/g,'')});}
-    if(found.length)cands.push({s:s,found:found,i:i});
+    if(found.length)cands.push({s:s,found:found,i:i,so:so});
   });
   var unitOf=function(t){return noAcc(t).replace(/^[\d\.,\s]+/,'').replace(new RegExp('^('+NUMW+')\\s*'),'');};
   var out=[],used={};
@@ -1478,7 +1522,7 @@ function clozeFromText(text,max,src){
     var blank=c.s.replace(f.term,'_____');
     if(blank===c.s)continue;
     var opts=[f.term].concat(d);
-    var q=mkQuestion('Completa la frase: «'+blank+'»',opts,0,'Texto original: '+c.s,src,out.length);
+    var q=mkQuestion('Completa la frase: «'+blank+'»',opts,0,'Texto original: '+c.s,src,out.length,locOf(c.so));
     if(q)out.push(q);
   }
   return out;
@@ -1486,12 +1530,12 @@ function clozeFromText(text,max,src){
 
 /* Detección del tipo de contenido */
 function parseAny(name,text,ext){
-  var src=name;
+  var src=name,unit=ext==='pdf'?'pagina':(ext==='docx'?'parrafo':'linea');
   if(ext==='json'){var j=parseJSONQuestions(text,src);return {kind:'preguntas',qs:j};}
   if(ext==='csv'||ext==='tsv'){var c=parseCSVQuestions(text,src);if(c.length)return {kind:'preguntas',qs:c};}
-  var qs=parseQuestionText(text,src);
+  var qs=parseQuestionText(text,src,unit);
   if(qs.length>=2)return {kind:'preguntas',qs:qs};
-  return {kind:'apuntes',qs:clozeFromText(text,60,src)};
+  return {kind:'apuntes',qs:clozeFromText(text,60,src,unit)};
 }
 
 /* Lectura de formatos */
@@ -1569,7 +1613,7 @@ async function pdfText(file){
   for(var p=1;p<=doc.numPages;p++){
     var pg=await doc.getPage(p),tc=await pg.getTextContent(),line='',y=null;
     tc.items.forEach(function(it){var yy=Math.round(it.transform[5]);if(y!==null&&Math.abs(yy-y)>3){out.push(line);line='';}y=yy;line+=(line&&!/\s$/.test(line)?' ':'')+it.str;});
-    if(line)out.push(line);out.push('');
+    if(line)out.push(line);out.push('\f');
   }
   return out.join('\n');
 }
@@ -1616,6 +1660,76 @@ function ctxHTML(q){
   return '<div class="ctx'+(q.mono?' mono':'')+'">'+esc(q.ctx)+'</div>';
 }
 
+
+/* ---------- Fuente y ubicación de cada pregunta ---------- */
+var CAT_SRC={ct:'Código Tributario',lrti:'Ley de Régimen Tributario Interno (LRTI) y su Reglamento',iva:'LRTI (Título del IVA) y su Reglamento',ret:'Resolución NAC-DGERCGC26-00000009 y Reglamento de Comprobantes de Venta, Retención y Documentos Complementarios',ruc:'Ley del Registro Único de Contribuyentes y su Reglamento',comp:'Reglamento de Comprobantes de Venta, Retención y Documentos Complementarios',rimpe:'LRTI (régimen RIMPE) y resoluciones del SRI',sri:'Código Tributario (determinación, reclamos, infracciones) y COIP Art. 298',cont:'NIIF / NIIF para PYMES y Reglamento de la LRTI',atc:'Constitución Art. 66.23, Código Tributario Art. 101 y Ley de Optimización de Trámites',coa:'Código Orgánico Administrativo (COA)',losep:'LOSEP, su Reglamento y códigos de ética institucionales',const:'Constitución de la República del Ecuador',elec:'Constitución (Arts. 217 a 221), Código de la Democracia y Reglamento de Trámites del TCE',proc:'COGEP y Código Orgánico de la Función Judicial',arch:'Ley del Sistema Nacional de Archivos y Norma Técnica de Gestión Documental y Archivo',exped:'Reglamento de Trámites del TCE y COGEP',expres:'Ortografía y Gramática de la Real Academia Española',info:'Ley Orgánica de Protección de Datos Personales y normas de gestión de la información',anal:'Práctica de razonamiento: revisa la explicación de cada pregunta',num:'Práctica de razonamiento: revisa la explicación de cada pregunta',log:'Práctica de razonamiento: revisa la explicación de cada pregunta',ver:'Diccionario y gramática de la RAE',psico:'Competencias del puesto y código de ética institucional',esp:'Práctica de razonamiento espacial',abs:'Práctica de razonamiento abstracto',aten:'Práctica de atención y percepción'};
+function legalRef(e){
+  if(!e)return '';
+  var m=e.match(/Arts?\.\s*\d+[0-9a-z\.]*(?:\s+(?:y|al)\s+\d+)?(?:\s+(?:del|de la|de)\s+(?:Código [A-Za-zÁÉÍÓÚáéíóúñ ]{3,40}|Constitución(?: de la República)?|LRTI|LOSEP|COA|COGEP|COIP|Ley [A-Za-zÁÉÍÓÚáéíóúñ ]{3,50}|Reglamento [A-Za-zÁÉÍÓÚáéíóúñ ]{3,50}))?/);
+  if(m)return m[0].trim();
+  m=e.match(/Resoluci[oó]n [A-Z0-9\-]{6,}/);if(m)return m[0];
+  m=e.match(/(?:Reglamento|Ley|Código|Norma) [A-ZÁÉÍÓÚa-záéíóúñ ]{6,50}/);
+  return m?m[0].trim():'';
+}
+function refHTML(q){
+  var p=[];
+  if(q.imp){p.push('<b>Archivo:</b> '+esc(q.src||'(sin nombre)'));if(q.loc)p.push('<b>Dónde:</b> '+esc(q.loc));}
+  else if(q.gen){return '';}
+  else{var r=legalRef(q.exp);p.push('<b>Banco integrado:</b> '+esc(catLabel(q.cat)));p.push('<b>Para estudiar:</b> '+esc(r||CAT_SRC[q.cat]||catLabel(q.cat)));}
+  return '<p class="src">📄 '+p.join(' · ')+'</p>';
+}
+function whereToStudy(items){
+  var g={},order=[];
+  items.forEach(function(it){
+    var q=it.q,key,label,loc='';
+    if(q.imp){key='f:'+q.src;label='Archivo «'+q.src+'»';loc=q.loc||'';}
+    else if(q.gen){key='g:'+q.cat;label='Practica más ejercicios de «'+catLabel(q.cat)+'»';}
+    else{var r=legalRef(q.exp);key='b:'+(r||q.cat);label=(r?r+' · '+catLabel(q.cat):(CAT_SRC[q.cat]||catLabel(q.cat)));}
+    if(!g[key]){g[key]={label:label,n:0,locs:[]};order.push(key);}
+    g[key].n++;if(loc&&g[key].locs.indexOf(loc)<0)g[key].locs.push(loc);
+  });
+  order.sort(function(a,b){return g[b].n-g[a].n;});
+  return order.slice(0,12).map(function(k){var x=g[k];return '<li><b>'+esc(x.label)+'</b><span>'+x.n+' pregunta'+(x.n===1?'':'s')+(x.locs.length?' · '+esc(x.locs.slice(0,6).join('; ')):'')+'</span></li>';}).join('');
+}
+
+/* ---------- Gráficos de estadística ---------- */
+function statusOf(p,n){return !n?{c:'none',t:'Sin datos'}:p>=PASS?{c:'good',t:'Aprobado'}:p>=60?{c:'mid',t:'Casi'}:{c:'low',t:'Reforzar'};}
+function donutSVG(p,size){
+  size=size||132;var r=size/2-12,c=2*Math.PI*r,cx=size/2,cls=p>=PASS?'good':p>=60?'mid':'low';
+  return '<svg class="donut '+cls+'" viewBox="0 0 '+size+' '+size+'" width="'+size+'" height="'+size+'" role="img" aria-label="'+p+' por ciento"><circle cx="'+cx+'" cy="'+cx+'" r="'+r+'" fill="none" stroke="var(--br)" stroke-width="12"/><circle cx="'+cx+'" cy="'+cx+'" r="'+r+'" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-dasharray="'+(c*p/100).toFixed(1)+' '+c.toFixed(1)+'" transform="rotate(-90 '+cx+' '+cx+')"/><text x="'+cx+'" y="'+cx+'" text-anchor="middle" dominant-baseline="central" font-size="'+Math.round(size*0.23)+'" font-weight="800" fill="currentColor">'+p+' %</text></svg>';
+}
+function barRow(label,ok,n){
+  var p=pct(ok,n),st=statusOf(p,n);
+  return '<li class="brow"><div class="bl"><span class="bn">'+esc(label)+'</span><span class="pill '+st.c+'">'+st.t+'</span></div><div class="bar2"><i class="'+st.c+'" style="width:'+(n?p:0)+'%"></i><u class="mk" style="left:'+PASS+'%"></u></div><div class="bm">'+(n?ok+' de '+n+' correctas · <b>'+p+' %</b>':'Aún no has practicado este tema')+'</div></li>';
+}
+function legendHTML(){return '<div class="legend"><span><i class="lg good"></i>'+PASS+' % o más: aprobado</span><span><i class="lg mid"></i>60 a '+(PASS-1)+' %: casi</span><span><i class="lg low"></i>menos de 60 %: reforzar</span><span><u class="mk2"></u>Meta '+PASS+' %</span></div>';}
+function userName(){return S.user?S.user.n+' '+S.user.a:'';}
+function userCardHTML(){
+  if(S.user&&!ui.editUser)return '<div class="hello"><span>Hola, <b>'+esc(userName())+'</b></span><span class="hb"><button class="lnk" data-action="stats">Mi progreso</button><button class="lnk" data-action="edituser">Cambiar nombre</button></span></div>';
+  var u=ui.tmp||S.user||{n:'',a:''};
+  return '<section class="card user"><h2>¿Quién va a practicar?</h2><p class="muted small">Tu nombre y apellido aparecerán en tus resultados. Se guardan solo en este dispositivo.</p><div class="frow"><label>Nombre<input id="uName" type="text" autocomplete="given-name" maxlength="40" value="'+esc(u.n)+'"></label><label>Apellido<input id="uLast" type="text" autocomplete="family-name" maxlength="40" value="'+esc(u.a)+'"></label></div>'+(ui.nameErr?'<p class="warn">'+esc(ui.nameErr)+'</p>':'')+'<button class="btn primary" data-action="saveuser">Guardar y continuar</button></section>';
+}
+
+function statsHTML(){
+  var p=PROFMAP[S.profile],rows=[],tok=0,tn=0,low=[];
+  p.allCats.forEach(function(c){
+    var x=S.cats[c]||{seen:0,ok:0};
+    if(c==='mis'&&!x.seen)return;
+    rows.push({c:c,ok:x.ok,n:x.seen});tok+=x.ok;tn+=x.seen;
+    if(x.seen>=5&&pct(x.ok,x.seen)<PASS)low.push({c:c,p:pct(x.ok,x.seen)});
+  });
+  low.sort(function(a,b){return a.p-b.p;});low=low.slice(0,3);
+  var overall=pct(tok,tn);
+  var hist=S.history.filter(function(x){return x.profile===S.profile;}).slice(-10);
+  var spark=hist.length?'<div class="spark" role="img" aria-label="Últimos intentos">'+hist.map(function(x){var st=statusOf(x.pct,1);return '<div class="sc"><small style="bottom:calc('+Math.max(4,x.pct)+'% + 3px)">'+x.pct+'</small><i class="'+st.c+'" style="height:'+Math.max(4,x.pct)+'%"></i></div>';}).join('')+'<u class="sl" style="bottom:'+PASS+'%"></u></div><p class="muted small">Cada barra es un intento (el más reciente a la derecha). La línea marca la meta del '+PASS+' %.</p>':'<p class="muted">Aún no hay intentos en este perfil.</p>';
+  return '<header class="top"><h1>Mi progreso</h1><p>'+esc(userName()||'Sin nombre')+' · '+esc(p.short)+' ('+esc(p.org.replace(/^.*\((.*)\)$/,'$1'))+')</p></header>'+
+    '<section class="card score"><div class="donwrap">'+(tn?donutSVG(overall,150):'<p class="muted">Aún no has respondido preguntas en este perfil.</p>')+'</div>'+(tn?'<p><b>'+tok+'</b> de <b>'+tn+'</b> correctas en total</p><p><span class="pill '+statusOf(overall,tn).c+'">'+(overall>=PASS?'En camino: superas el '+PASS+' %':'Meta: llegar al '+PASS+' %')+'</span></p>':'')+'</section>'+
+    '<section class="card"><h3>Avance por tema (acumulado)</h3>'+legendHTML()+'<ul class="blist">'+rows.map(function(r){return barRow(catLabel(r.c),r.ok,r.n);}).join('')+'</ul></section>'+
+    (low.length?'<section class="card"><h3>Prioridades para subir tu nota</h3><ol class="prio">'+low.map(function(x){return '<li><b>'+esc(catLabel(x.c))+'</b> · '+x.p+' %</li>';}).join('')+'</ol><button class="btn primary big" data-action="statsprio">Practicar estos temas ahora</button></section>':'')+
+    '<section class="card"><h3>Evolución de tus intentos</h3>'+spark+'</section>'+
+    '<div class="nav stack"><button class="btn primary" data-action="home">Volver al inicio</button><button class="btn ghost" data-action="resetstats">Borrar mi progreso</button></div>';
+}
+
 function homeHTML(){
   var p=PROFMAP[S.profile],sel=selectedCats();
   var tabs='<div class="tabs" role="tablist" aria-label="Perfil">'+PROFILES.map(function(x){
@@ -1635,12 +1749,12 @@ function homeHTML(){
   var counts=[10,20,40,80,'all'].map(function(n){return '<button class="seg'+(S.count===n?' on':'')+'" data-action="count" data-id="'+n+'">'+(n==='all'?'Todas':n)+'</button>';}).join('');
   var mode='<button class="seg'+(S.mode==='practice'?' on':'')+'" data-action="mode" data-id="practice">Práctica (con explicación)</button><button class="seg'+(S.mode==='exam'?' on':'')+'" data-action="mode" data-id="exam">Simulacro (con tiempo)</button>';
   var wr=S.wrong.length?'<button class="btn ghost" data-action="review">Repasar mis errores ('+S.wrong.length+')</button>':'';
-  var hist=S.history.slice(-5).reverse().map(function(x){return '<li><span>'+new Date(x.t).toLocaleDateString('es-EC')+' · '+esc(x.pname||'')+' · '+(x.mode==='exam'?'Simulacro':'Práctica')+'</span><b class="'+(x.pct>=80?'good':x.pct>=60?'mid':'low')+'">'+x.ok+'/'+x.total+' ('+x.pct+' %)</b></li>';}).join('');
+  var hist=S.history.slice(-5).reverse().map(function(x){return '<li><span>'+new Date(x.t).toLocaleDateString('es-EC')+' · '+esc(x.pname||'')+' · '+(x.mode==='exam'?'Simulacro':'Práctica')+'</span><b class="'+(x.pct>=PASS?'good':x.pct>=60?'mid':'low')+'">'+(x.pct>=PASS?'✔ ':'')+x.ok+'/'+x.total+' ('+x.pct+' %)</b></li>';}).join('');
   var warn=ui.memOnly?'<p class="warn">Este navegador no permite guardar datos: tu avance se perderá al cerrar la página.</p>':'';
-  return '<header class="top"><h1>Práctica para concursos</h1><p>Sector público · Ecuador</p></header>'+tabs+info+
+  return '<header class="top"><h1>Práctica para concursos</h1><p>Sector público · Ecuador</p></header>'+userCardHTML()+tabs+info+
     '<div class="sec-h"><h2>Elige los temas</h2>'+pre+'</div>'+groups+
-    '<section class="card"><h3>Modo</h3><div class="segs">'+mode+'</div><h3>Cantidad de preguntas</h3><div class="segs">'+counts+'</div><p class="muted small">Se reparten entre los temas elegidos. El simulacro da 1 minuto por pregunta. Los temas con figuras y cálculos generan preguntas nuevas cada vez.</p>'+warn+
-    '<button class="btn primary big" data-action="start"'+(sel.length?'':' disabled')+'>Comenzar ('+sel.length+' tema'+(sel.length===1?'':'s')+')</button>'+wr+'</section>'+
+    '<section class="card"><h3>Modo</h3><div class="segs">'+mode+'</div><h3>Cantidad de preguntas</h3><div class="segs">'+counts+'</div><p class="muted small"><b>Para aprobar se requiere el '+PASS+' % de aciertos.</b> Las preguntas se reparten entre los temas elegidos. El simulacro da 1 minuto por pregunta. Los temas con figuras y cálculos generan preguntas nuevas cada vez.</p>'+warn+
+    '<button class="btn primary big" data-action="start"'+(sel.length?'':' disabled')+'>Comenzar ('+sel.length+' tema'+(sel.length===1?'':'s')+')</button>'+wr+'<button class="btn ghost" data-action="stats">Ver mi progreso por tema</button></section>'+
     (hist?'<section class="card"><h3>Últimos intentos</h3><ul class="hist">'+hist+'</ul></section>':'')+
     '<footer class="foot"><p><b>Importante:</b> las tarifas, porcentajes de retención, tablas y plazos cambian por resolución o reforma. Los valores de este banco (IVA 15 %, retenciones vigentes desde el 1 de marzo de 2026, tabla de IR 2026, RIMPE, plazos electorales) se verificaron en septiembre de 2026, pero confírmalos siempre en las fuentes oficiales (sri.gob.ec, tce.gob.ec y Registro Oficial) y en las bases de tu convocatoria.</p><p class="small">Material de estudio no oficial, elaborado como práctica. No sustituye la normativa ni la asesoría profesional.</p></footer>';
 }
@@ -1701,7 +1815,7 @@ function quizHTML(){
   }).join('');
   var timer=s.mode==='exam'?'<span class="timer" title="Tiempo restante">⏱ <b id="timer">'+(function(){var l=Math.max(0,Math.round((s.deadline-Date.now())/1000));return Math.floor(l/60)+':'+('0'+l%60).slice(-2);})()+'</b></span>':'';
   var fbh='';
-  if(fb){var okk=it.picked===q.ans;fbh='<div class="fb '+(okk?'good':'bad')+'" role="status"><b>'+(okk?'¡Correcto!':'Incorrecto')+'</b>'+(okk?'':' La respuesta es la '+LETTERS[it.order.indexOf(q.ans)]+'.')+(q.exp?'<p>'+esc(q.exp)+'</p>':'')+'</div>';}
+  if(fb){var okk=it.picked===q.ans;fbh='<div class="fb '+(okk?'good':'bad')+'" role="status"><b>'+(okk?'¡Correcto!':'Incorrecto')+'</b>'+(okk?'':' La respuesta es la '+LETTERS[it.order.indexOf(q.ans)]+'.')+(q.exp?'<p>'+esc(q.exp)+'</p>':'')+refHTML(q)+'</div>';}
   var dots=s.items.map(function(x,k){var c=x.picked==null?'':(s.mode==='practice'?(x.picked===x.q.ans?' g':' r'):' a');return '<i class="dot'+(k===s.i?' cur':'')+c+'"></i>';}).join('');
   return '<div class="qbar"><button class="btn ghost sm" data-action="quit">Salir</button><span class="qn">'+(s.i+1)+' / '+s.items.length+'</span>'+timer+'</div><div class="pbar"><i style="width:'+Math.round(answered/s.items.length*100)+'%"></i></div>'+
     '<article class="qcard"><div class="qcat">'+esc(catLabel(q.cat))+(q.imp?' · tu archivo':'')+'</div><h2 class="qt">'+qText(q)+'</h2>'+ctxHTML(q)+'<div class="opts'+(q.figopts?' fig':'')+'" role="group" aria-label="Opciones">'+opts+'</div>'+fbh+'</article>'+
@@ -1720,20 +1834,24 @@ function finish(){
     if(it.picked!=null&&!cor){if(wi<0)S.wrong.push(q);}else if(cor&&wi>-1){S.wrong.splice(wi,1);}
   });
   if(S.wrong.length>300)S.wrong=S.wrong.slice(-300);
-  var res={t:Date.now(),mode:s.mode,profile:s.profile,pname:s.pname,total:total,ok:ok,pct:pct(ok,total)};
+  var p=pct(ok,total);
+  var res={t:Date.now(),mode:s.mode,profile:s.profile,pname:s.pname,user:userName(),total:total,ok:ok,pct:p,pass:p>=PASS};
   S.history.push(res);if(S.history.length>40)S.history=S.history.slice(-40);
   saveState();
   ui.result={res:res,per:per,items:s.items};ui.view='results';render();window.scrollTo(0,0);
 }
 function resultsHTML(){
-  var r=ui.result,res=r.res;
-  var cls=res.pct>=80?'good':res.pct>=60?'mid':'low';
-  var msg=res.pct>=80?'Vas por buen camino: superaste el 80 %.':res.pct>=60?'Buen avance. Refuerza los temas más bajos para llegar al 80 %.':'Sigue practicando: repasa las explicaciones y vuelve a intentar.';
-  var per=Object.keys(r.per).map(function(c){var x=r.per[c],p=pct(x.ok,x.n);return '<li><span>'+esc(catLabel(c))+'</span><div class="bar"><i class="'+(p>=80?'good':p>=60?'mid':'low')+'" style="width:'+p+'%"></i></div><b>'+x.ok+'/'+x.n+'</b></li>';}).join('');
+  var r=ui.result,res=r.res,passed=res.pct>=PASS,need=Math.max(0,Math.ceil(res.total*PASS/100)-res.ok);
+  var cls=passed?'good':res.pct>=60?'mid':'low';
+  var head='<header class="top"><h1>Resultado</h1><p>'+esc(res.user||'')+(res.user?' · ':'')+esc(res.pname)+' · '+(res.mode==='exam'?'Simulacro':'Práctica')+' · '+new Date(res.t).toLocaleDateString('es-EC')+'</p></header>';
+  var msg=passed?'¡Muy bien'+(res.user?', '+esc(S.user?S.user.n:''):'')+'! Superaste la meta del '+PASS+' %.':'Te faltaron <b>'+need+'</b> respuesta'+(need===1?'':'s')+' correcta'+(need===1?'':'s')+' para llegar al '+PASS+' %. Revisa la guía de repaso y vuelve a intentarlo.';
+  var score='<section class="card score"><div class="donwrap">'+donutSVG(res.pct,150)+'</div><p class="verdict"><span class="pill big '+(passed?'good':'low')+'">'+(passed?'APROBADO':'NO APROBADO')+'</span></p><p><b>'+res.ok+'</b> de <b>'+res.total+'</b> correctas · meta '+PASS+' %</p><p class="muted">'+msg+'</p></section>';
+  var cats=Object.keys(r.per).sort(function(a,b){return pct(r.per[a].ok,r.per[a].n)-pct(r.per[b].ok,r.per[b].n);});
+  var per='<section class="card"><h3>Resultado por tema (del más bajo al más alto)</h3>'+legendHTML()+'<ul class="blist">'+cats.map(function(c){return barRow(catLabel(c),r.per[c].ok,r.per[c].n);}).join('')+'</ul></section>';
   var wrong=r.items.filter(function(it){return it.picked!==it.q.ans;});
-  var det=wrong.length?'<section class="card"><h3>Revisión de errores y omitidas ('+wrong.length+')</h3>'+wrong.map(function(it){var q=it.q;return '<div class="rv"><div class="qcat">'+esc(catLabel(q.cat))+'</div><p class="qt s">'+qText(q)+'</p>'+ctxHTML(q)+'<p class="ans"><b>Correcta:</b> <span class="ansx">'+optHTML(q,q.opts[q.ans])+'</span></p>'+(it.picked!=null?'<p class="yours"><b>Tu respuesta:</b> <span class="ansx">'+optHTML(q,q.opts[it.picked])+'</span></p>':'<p class="yours">No respondida</p>')+(q.exp?'<p class="exp">'+esc(q.exp)+'</p>':'')+'</div>';}).join('')+'</section>':'<section class="card"><p>¡Sin errores en este intento!</p></section>';
-  return '<header class="top"><h1>Resultado</h1><p>'+esc(res.pname)+' · '+(res.mode==='exam'?'Simulacro':'Práctica')+'</p></header><section class="card score"><div class="big '+cls+'">'+res.pct+' %</div><p><b>'+res.ok+'</b> de <b>'+res.total+'</b> correctas</p><p class="muted">'+msg+'</p></section><section class="card"><h3>Por tema</h3><ul class="per">'+per+'</ul></section>'+det+
-    '<div class="nav stack"><button class="btn primary" data-action="home">Volver al inicio</button></div>';
+  var guide=wrong.length?'<section class="card"><h3>Dónde repasar</h3><p class="muted small">Estas son las fuentes de las preguntas que debes corregir, de la que más te falló a la que menos.</p><ul class="guide">'+whereToStudy(wrong)+'</ul></section>':'';
+  var det=wrong.length?'<section class="card"><h3>Preguntas por corregir ('+wrong.length+')</h3>'+wrong.map(function(it){var q=it.q;return '<div class="rv"><div class="qcat">'+esc(catLabel(q.cat))+'</div><p class="qt s">'+qText(q)+'</p>'+ctxHTML(q)+'<p class="ans"><b>Correcta:</b> <span class="ansx">'+optHTML(q,q.opts[q.ans])+'</span></p>'+(it.picked!=null?'<p class="yours"><b>Tu respuesta:</b> <span class="ansx">'+optHTML(q,q.opts[it.picked])+'</span></p>':'<p class="yours">No respondida</p>')+(q.exp?'<p class="exp">'+esc(q.exp)+'</p>':'')+refHTML(q)+'</div>';}).join('')+'</section>':'<section class="card"><p>¡Sin errores en este intento!</p></section>';
+  return head+score+per+guide+det+'<div class="nav stack"><button class="btn primary" data-action="home">Volver al inicio</button><button class="btn ghost" data-action="stats">Ver mi progreso</button></div>';
 }
 
 /* ---------- Cuestionario de competencias ---------- */
@@ -1761,6 +1879,7 @@ function render(){
   else if(ui.view==='quiz')html=quizHTML();
   else if(ui.view==='results')html=resultsHTML();
   else if(ui.view==='likert')html=likertHTML();
+  else if(ui.view==='stats')html=statsHTML();
   $app.innerHTML=html;
   renderModal();
 }
@@ -1783,7 +1902,24 @@ document.addEventListener('click',function(e){
   else if(a==='rmfile'){removeFile(id,+t.getAttribute('data-i'));}
   else if(a==='count'){S.count=id==='all'?'all':+id;saveState();render();}
   else if(a==='mode'){S.mode=id;saveState();render();}
-  else if(a==='start'){var cats=selectedCats();startSession(buildQuestions(cats,S.count),S.mode);}
+  else if(a==='saveuser'){
+    var n=(document.getElementById('uName')||{}).value||'',ap=(document.getElementById('uLast')||{}).value||'';
+    n=n.replace(/\s+/g,' ').trim();ap=ap.replace(/\s+/g,' ').trim();
+    if(n.length<2||ap.length<2){ui.nameErr='Escribe tu nombre y tu apellido (mínimo 2 letras cada uno).';ui.tmp={n:n,a:ap};render();return;}
+    S.user={n:n,a:ap};ui.nameErr='';ui.tmp=null;ui.editUser=false;saveState();render();
+  }
+  else if(a==='edituser'){ui.editUser=true;ui.nameErr='';ui.tmp=null;render();}
+  else if(a==='stats'){ui.view='stats';render();window.scrollTo(0,0);}
+  else if(a==='statsprio'){
+    var pp=PROFMAP[S.profile],lows=[];
+    pp.allCats.forEach(function(c){var x=S.cats[c];if(x&&x.seen>=5&&pct(x.ok,x.seen)<PASS)lows.push({c:c,p:pct(x.ok,x.seen)});});
+    lows.sort(function(x,y){return x.p-y.p;});var lc=lows.slice(0,3).map(function(x){return x.c;});
+    if(lc.length){S.sel[S.profile]=lc;S.mode='practice';saveState();startSession(buildQuestions(lc,S.count==='all'?30:Math.max(20,S.count)),'practice');}
+  }
+  else if(a==='resetstats'){dlg('¿Borrar todo tu progreso (estadísticas, historial y errores guardados)? Tus archivos y tu nombre se conservan.',function(){S.cats={};S.history=[];S.wrong=[];saveState();render();},'Borrar');}
+  else if(a==='start'){
+    if(!S.user||ui.editUser){ui.nameErr='Primero escribe tu nombre y apellido para comenzar.';ui.editUser=!S.user?false:ui.editUser;render();window.scrollTo(0,0);return;}
+    var cats=selectedCats();startSession(buildQuestions(cats,S.count),S.mode);}
   else if(a==='review'){startSession(shuffle(S.wrong.slice()),'practice');}
   else if(a==='pick'){
     var s=ui.session,it=s.items[s.i],j=+t.getAttribute('data-j');
@@ -1815,7 +1951,10 @@ document.addEventListener('change',function(e){
   }
   else if(t&&t.id==='fileIn'){var fs=t.files;handleFiles(fs);}
 });
-document.addEventListener('keydown',function(e){if(e.key==='Escape'&&ui.modal){ui.modal=null;render();}});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'&&ui.modal){ui.modal=null;render();}
+  if(e.key==='Enter'&&e.target&&(e.target.id==='uName'||e.target.id==='uLast')){var b=document.querySelector('[data-action=saveuser]');if(b)b.click();}
+});
 
 /* ---------- Inicio ---------- */
 function boot(){loadState();$app=document.getElementById('app');render();}
