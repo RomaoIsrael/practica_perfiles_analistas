@@ -117,8 +117,8 @@ p{margin:.4em 0}
 .hb{display:flex;gap:14px}.lnk{background:none;border:0;color:var(--ac2);font-weight:600;padding:8px 2px;min-height:40px;text-decoration:underline}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
 .frow label{display:flex;flex-direction:column;gap:4px;font-size:.86rem;color:var(--mu)}
-input[type=text]{font:inherit;font-size:16px;color:var(--tx);background:var(--bg);border:1px solid var(--br);border-radius:10px;padding:10px 12px;min-height:46px;width:100%}
-input[type=text]:focus{outline:2px solid var(--ac);outline-offset:1px}
+input[type=text],input[type=password]{font:inherit;font-size:16px;color:var(--tx);background:var(--bg);border:1px solid var(--br);border-radius:10px;padding:10px 12px;min-height:46px;width:100%}
+input[type=text]:focus,input[type=password]:focus{outline:2px solid var(--ac);outline-offset:1px}
 @media (max-width:420px){.frow{grid-template-columns:1fr}}
 .donwrap{display:flex;justify-content:center;margin:2px 0 6px}
 .donut{display:block}.donut.good{color:var(--ok)}.donut.mid{color:var(--mid)}.donut.low{color:var(--bad)}
@@ -148,6 +148,16 @@ input[type=text]:focus{outline:2px solid var(--ac);outline-offset:1px}
 .spark .sc i.good{background:var(--ok)}.spark .sc i.mid{background:var(--mid)}.spark .sc i.low{background:var(--bad)}
 .spark small{font-size:.72rem;color:var(--mu);position:absolute;left:0;right:0;text-align:center}
 .spark .sl{position:absolute;left:0;right:0;border-top:2px dashed var(--tx);opacity:.5;text-decoration:none}
+/* Acceso y cuenta */
+.fl{display:flex;flex-direction:column;gap:4px;font-size:.86rem;color:var(--mu);margin:10px 0}
+.frow .fl{margin:0}
+.chk{display:flex;align-items:flex-start;gap:10px;margin:10px 0;font-size:.92rem}
+.chk input{width:22px;height:22px;flex:none;accent-color:var(--ac);margin-top:1px}
+.priv{margin:10px 2px}
+.okmsg{background:var(--okbg);color:var(--ok);border-radius:10px;padding:10px 12px;margin:6px 0;font-weight:600}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.primary.danger{background:var(--bad);color:#fff;border-color:var(--bad)}
+.hello small{margin-left:4px}
 /* Diálogo de confirmación */
 .dlg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(6,12,20,.55);display:flex;align-items:center;justify-content:center;z-index:60;padding:16px}
 .dlg-b{background:var(--card);border:1px solid var(--br);border-radius:16px;padding:18px;max-width:420px;width:100%}
@@ -586,6 +596,42 @@ function genMany(cat,n){
   while(out.length<n&&tries<n*6){tries++;var q=genOne(cat);if(!q)continue;var key=q.text+(q.ctx||'');if(seen[key])continue;seen[key]=1;out.push(q);}
   return out;
 }
+
+/* ---- users_core.js ---- */
+
+/* ---------- Usuarios: huella SHA-256 y validación de cédula ---------- */
+var K256=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+function sha256(msg){
+  var s=unescape(encodeURIComponent(msg)),l=s.length,w=[],i,j;
+  for(i=0;i<l;i++)w[i>>2]|=s.charCodeAt(i)<<(24-(i%4)*8);
+  w[l>>2]|=0x80<<(24-(l%4)*8);
+  w[(((l+8)>>6)+1)*16-1]=l*8;
+  var H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  for(i=0;i<w.length;i+=16){
+    var a=H.slice(),W=[];
+    for(j=0;j<64;j++){
+      if(j<16)W[j]=w[i+j]|0;
+      else{var g0=W[j-15],g1=W[j-2];W[j]=(((g1>>>17|g1<<15)^(g1>>>19|g1<<13)^(g1>>>10))+W[j-7]+((g0>>>7|g0<<25)^(g0>>>18|g0<<14)^(g0>>>3))+W[j-16])|0;}
+      var t1=(a[7]+((a[4]>>>6|a[4]<<26)^(a[4]>>>11|a[4]<<21)^(a[4]>>>25|a[4]<<7))+((a[4]&a[5])^(~a[4]&a[6]))+K256[j]+W[j])|0;
+      var t2=(((a[0]>>>2|a[0]<<30)^(a[0]>>>13|a[0]<<19)^(a[0]>>>22|a[0]<<10))+((a[0]&a[1])^(a[0]&a[2])^(a[1]&a[2])))|0;
+      a=[(t1+t2)|0,a[0],a[1],a[2],(a[3]+t1)|0,a[4],a[5],a[6]];
+    }
+    for(j=0;j<8;j++)H[j]=(H[j]+a[j])|0;
+  }
+  var out='';for(i=0;i<8;i++)out+=('00000000'+(H[i]>>>0).toString(16)).slice(-8);
+  return out;
+}
+/* Cédula ecuatoriana de persona natural: provincia 01-24 o 30, tercer dígito < 6, dígito verificador módulo 10 */
+function validCedula(c){
+  if(!/^\d{10}$/.test(c))return false;
+  var p=+c.slice(0,2);if(!((p>=1&&p<=24)||p===30))return false;
+  if(+c[2]>=6)return false;
+  var s=0;for(var i=0;i<9;i++){var v=+c[i]*(i%2===0?2:1);if(v>9)v-=9;s+=v;}
+  return ((10-(s%10))%10)===+c[9];
+}
+function maskCed(c){return c.slice(0,2)+'******'+c.slice(-2);}
+function userIdOf(c){return sha256('pcv3:ced:'+c).slice(0,20);}
+function pinHash(id,pin){return sha256('pcv3:pin:'+id+':'+pin);}
 
 /* ---- legacy.js ---- */
 Qa("num","¿Qué número continúa la serie? 2, 6, 12, 20, 30, …",["40","42","44","36"],1,"Las diferencias entre términos son 4, 6, 8, 10 y la siguiente es 12. Entonces 30 + 12 = 42.");
@@ -1295,19 +1341,38 @@ var LIKERT=[
    MOTOR DE LA APLICACIÓN
    ========================================================= */
 var LETTERS=['A','B','C','D','E','F'];
-var KEY='pcv2_estado';
+var KEY_OLD='pcv2_estado',UKEY='pcv3_users',DKEY='pcv3_d_';
 var PASS=80;
-var S={profile:'sri',user:null,history:[],wrong:[],cats:{},imports:{},likert:null,sel:{},count:20,mode:'practice'};
-var ui={view:'home',modal:null,msg:'',busy:false,session:null,result:null,lk:null,memOnly:false};
+function freshState(){return {profile:'sri',history:[],wrong:[],cats:{},imports:{},likert:null,sel:{},count:20,mode:'practice'};}
+var S=freshState();            /* datos del usuario que tiene la sesión abierta */
+var CUR=null;                  /* {id,n,a,mask,t} usuario activo (la cédula no se guarda) */
+var U={users:{},last:null};    /* índice de usuarios de este dispositivo */
+var ui={view:'auth',auth:{step:'ced',ced:'',rem:false,err:''},modal:null,msg:'',busy:false,session:null,result:null,lk:null,memOnly:false,pinTry:0};
 var BYCAT={};
 QS.forEach(function(q){(BYCAT[q.cat]=BYCAT[q.cat]||[]).push(q);});
 
-function loadState(){
-  try{var raw=localStorage.getItem(KEY);if(raw){var o=JSON.parse(raw);for(var k in o)S[k]=o[k];}}catch(e){ui.memOnly=true;}
+function loadIndex(){
+  try{var r=localStorage.getItem(UKEY);if(r){var o=JSON.parse(r);if(o&&o.users)U={users:o.users,last:o.last||null};}}catch(e){ui.memOnly=true;}
+}
+function saveIndex(){try{localStorage.setItem(UKEY,JSON.stringify(U));return true;}catch(e){ui.memOnly=true;return false;}}
+function saveState(){if(!CUR)return false;try{localStorage.setItem(DKEY+CUR.id,JSON.stringify(S));return true;}catch(e){ui.memOnly=true;return false;}}
+function normalizeState(){
   if(!PROFMAP[S.profile])S.profile='sri';
   if(!S.sel)S.sel={};if(!S.imports)S.imports={};if(!S.wrong)S.wrong=[];if(!S.history)S.history=[];if(!S.cats)S.cats={};
 }
-function saveState(){try{localStorage.setItem(KEY,JSON.stringify(S));return true;}catch(e){ui.memOnly=true;return false;}}
+function openUser(id){
+  var rec=U.users[id];if(!rec)return false;
+  CUR={id:id,n:rec.n,a:rec.a,mask:rec.mask,t:rec.t};
+  S=freshState();
+  try{var r=localStorage.getItem(DKEY+id);if(r){var o=JSON.parse(r);for(var k in o)S[k]=o[k];}}catch(e){}
+  normalizeState();ui.view='home';ui.session=null;ui.result=null;ui.modal=null;ui.msg='';
+  return true;
+}
+function closeUser(msg){
+  stopTimer();CUR=null;S=freshState();ui.view='auth';ui.session=null;ui.result=null;ui.modal=null;ui.msg='';ui.lk=null;ui.pin=null;ui.dlg=null;
+  ui.auth={step:'ced',ced:'',rem:false,err:'',ok:msg||''};
+  renderDlg();renderPin();
+}
 
 /* ---------- Bancos ---------- */
 function importedFiles(cat){return S.imports[cat]||[];}
@@ -1703,11 +1768,32 @@ function barRow(label,ok,n){
   return '<li class="brow"><div class="bl"><span class="bn">'+esc(label)+'</span><span class="pill '+st.c+'">'+st.t+'</span></div><div class="bar2"><i class="'+st.c+'" style="width:'+(n?p:0)+'%"></i><u class="mk" style="left:'+PASS+'%"></u></div><div class="bm">'+(n?ok+' de '+n+' correctas · <b>'+p+' %</b>':'Aún no has practicado este tema')+'</div></li>';
 }
 function legendHTML(){return '<div class="legend"><span><i class="lg good"></i>'+PASS+' % o más: aprobado</span><span><i class="lg mid"></i>60 a '+(PASS-1)+' %: casi</span><span><i class="lg low"></i>menos de 60 %: reforzar</span><span><u class="mk2"></u>Meta '+PASS+' %</span></div>';}
-function userName(){return S.user?S.user.n+' '+S.user.a:'';}
+function userName(){return CUR?CUR.n+' '+CUR.a:'';}
 function userCardHTML(){
-  if(S.user&&!ui.editUser)return '<div class="hello"><span>Hola, <b>'+esc(userName())+'</b></span><span class="hb"><button class="lnk" data-action="stats">Mi progreso</button><button class="lnk" data-action="edituser">Cambiar nombre</button></span></div>';
-  var u=ui.tmp||S.user||{n:'',a:''};
-  return '<section class="card user"><h2>¿Quién va a practicar?</h2><p class="muted small">Tu nombre y apellido aparecerán en tus resultados. Se guardan solo en este dispositivo.</p><div class="frow"><label>Nombre<input id="uName" type="text" autocomplete="given-name" maxlength="40" value="'+esc(u.n)+'"></label><label>Apellido<input id="uLast" type="text" autocomplete="family-name" maxlength="40" value="'+esc(u.a)+'"></label></div>'+(ui.nameErr?'<p class="warn">'+esc(ui.nameErr)+'</p>':'')+'<button class="btn primary" data-action="saveuser">Guardar y continuar</button></section>';
+  return '<div class="hello"><span>Hola, <b>'+esc(userName())+'</b> <small class="muted">'+esc(CUR.mask)+'</small></span><span class="hb"><button class="lnk" data-action="stats">Mi progreso</button><button class="lnk" data-action="account">Mi cuenta</button><button class="lnk" data-action="logout">Cerrar sesión</button></span></div>';
+}
+function authHTML(){
+  var A=ui.auth,head='<header class="top"><h1>Práctica para concursos</h1><p>Sector público · Ecuador</p></header>';
+  var priv='<p class="muted small priv">🔒 Tu cédula no se guarda: solo una huella cifrada para reconocerte y una versión oculta (por ejemplo 17******65). Tu progreso queda únicamente en este dispositivo y nadie más lo recibe.</p>';
+  if(A.step==='ced'){
+    return head+(A.ok?'<p class="okmsg" role="status">'+esc(A.ok)+'</p>':'')+'<section class="card user"><h2>Ingresar</h2><p class="muted small">Escribe tu número de cédula para abrir tu progreso. Si es tu primera vez, te pediremos crear tu usuario. Cada persona tiene su propio espacio, con sus estadísticas, errores y archivos.</p><label class="fl">Cédula de identidad<input id="uCed" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="10" placeholder="10 dígitos" value="'+esc(A.ced||'')+'"></label><label class="chk"><input type="checkbox" id="uRem"'+(A.rem?' checked':'')+'><span>Mantener mi sesión abierta en este dispositivo <small class="muted">(no lo marques si lo comparte otra persona)</small></span></label>'+(A.err?'<p class="warn" role="alert">'+esc(A.err)+'</p>':'')+'<button class="btn primary big" data-action="authced">Continuar</button></section>'+priv;
+  }
+  var legacy=false;try{legacy=!!localStorage.getItem(KEY_OLD);}catch(e){}
+  return head+'<section class="card user"><h2>Crear tu usuario</h2><p class="muted small">La cédula <b>'+esc(maskCed(A.ced))+'</b> todavía no tiene usuario en este dispositivo.</p><div class="frow"><label class="fl">Nombre<input id="uName" type="text" autocomplete="given-name" maxlength="40" value="'+esc(A.n||'')+'"></label><label class="fl">Apellido<input id="uLast" type="text" autocomplete="family-name" maxlength="40" value="'+esc(A.a||'')+'"></label></div><div class="frow"><label class="fl">PIN (4 a 6 dígitos)<input id="uPin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="6"></label><label class="fl">Repite el PIN<input id="uPin2" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="6"></label></div><p class="muted small">El PIN protege tu usuario: <b>sin él nadie puede eliminarlo</b>. Anótalo, porque no se puede recuperar.</p>'+(legacy?'<label class="chk"><input type="checkbox" id="uLegacy"><span>Traer el progreso que ya estaba guardado en este dispositivo <small class="muted">(marca solo si es tuyo)</small></span></label>':'')+(A.err?'<p class="warn" role="alert">'+esc(A.err)+'</p>':'')+'<button class="btn primary big" data-action="authnew">Crear usuario y entrar</button><button class="btn ghost" data-action="authback">Volver</button></section>'+priv;
+}
+function accountHTML(){
+  return '<header class="top"><h1>Mi cuenta</h1><p>'+esc(userName())+' · cédula '+esc(CUR.mask)+'</p></header>'+
+  '<section class="card"><h3>Datos</h3><p class="muted small">Usuario creado el '+new Date(CUR.t||Date.now()).toLocaleDateString('es-EC')+'. Tu progreso está guardado solo en este dispositivo.</p><div class="frow"><label class="fl">Nombre<input id="uName" type="text" maxlength="40" value="'+esc(CUR.n)+'"></label><label class="fl">Apellido<input id="uLast" type="text" maxlength="40" value="'+esc(CUR.a)+'"></label></div>'+(ui.msg?'<p class="status" role="status">'+esc(ui.msg)+'</p>':'')+'<button class="btn primary" data-action="savename">Guardar nombre</button></section>'+
+  '<section class="card"><h3>Eliminar mi usuario</h3><p class="muted small">Borra de forma definitiva tu progreso, tus errores guardados y tus archivos de este dispositivo. Solo puede hacerlo quien conoce el PIN de este usuario.</p><button class="btn ghost danger" data-action="deluser">Eliminar mi usuario…</button></section>'+
+  '<div class="nav stack"><button class="btn primary" data-action="home">Volver al inicio</button><button class="btn ghost" data-action="logout">Cerrar sesión</button></div>';
+}
+function renderPin(){
+  var old=document.querySelector('.pinbox');if(old)old.remove();
+  if(!ui.pin)return;
+  var d=document.createElement('div');d.className='dlg pinbox';
+  d.innerHTML='<div class="dlg-b" role="alertdialog" aria-modal="true"><h3 style="margin-top:0">Eliminar mi usuario</h3><p>Se borrarán <b>para siempre</b> tu progreso, tus errores y tus archivos de este dispositivo. No se puede deshacer.</p><label class="fl">Escribe tu PIN para confirmar<input id="uPinDel" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="6"></label>'+(ui.pin.err?'<p class="warn" role="alert">'+esc(ui.pin.err)+'</p>':'')+'<div class="nav"><button class="btn ghost" data-action="pinno">Cancelar</button><button class="btn primary danger" data-action="pinyes">Eliminar</button></div></div>';
+  document.body.appendChild(d);
+  var i=document.getElementById('uPinDel');if(i&&i.focus)i.focus();
 }
 
 function statsHTML(){
@@ -1722,7 +1808,7 @@ function statsHTML(){
   var overall=pct(tok,tn);
   var hist=S.history.filter(function(x){return x.profile===S.profile;}).slice(-10);
   var spark=hist.length?'<div class="spark" role="img" aria-label="Últimos intentos">'+hist.map(function(x){var st=statusOf(x.pct,1);return '<div class="sc"><small style="bottom:calc('+Math.max(4,x.pct)+'% + 3px)">'+x.pct+'</small><i class="'+st.c+'" style="height:'+Math.max(4,x.pct)+'%"></i></div>';}).join('')+'<u class="sl" style="bottom:'+PASS+'%"></u></div><p class="muted small">Cada barra es un intento (el más reciente a la derecha). La línea marca la meta del '+PASS+' %.</p>':'<p class="muted">Aún no hay intentos en este perfil.</p>';
-  return '<header class="top"><h1>Mi progreso</h1><p>'+esc(userName()||'Sin nombre')+' · '+esc(p.short)+' ('+esc(p.org.replace(/^.*\((.*)\)$/,'$1'))+')</p></header>'+
+  return '<header class="top"><h1>Mi progreso</h1><p>'+esc(userName())+' ('+esc(CUR.mask)+') · '+esc(p.short)+' ('+esc(p.org.replace(/^.*\((.*)\)$/,'$1'))+')</p></header>'+
     '<section class="card score"><div class="donwrap">'+(tn?donutSVG(overall,150):'<p class="muted">Aún no has respondido preguntas en este perfil.</p>')+'</div>'+(tn?'<p><b>'+tok+'</b> de <b>'+tn+'</b> correctas en total</p><p><span class="pill '+statusOf(overall,tn).c+'">'+(overall>=PASS?'En camino: superas el '+PASS+' %':'Meta: llegar al '+PASS+' %')+'</span></p>':'')+'</section>'+
     '<section class="card"><h3>Avance por tema (acumulado)</h3>'+legendHTML()+'<ul class="blist">'+rows.map(function(r){return barRow(catLabel(r.c),r.ok,r.n);}).join('')+'</ul></section>'+
     (low.length?'<section class="card"><h3>Prioridades para subir tu nota</h3><ol class="prio">'+low.map(function(x){return '<li><b>'+esc(catLabel(x.c))+'</b> · '+x.p+' %</li>';}).join('')+'</ol><button class="btn primary big" data-action="statsprio">Practicar estos temas ahora</button></section>':'')+
@@ -1835,7 +1921,7 @@ function finish(){
   });
   if(S.wrong.length>300)S.wrong=S.wrong.slice(-300);
   var p=pct(ok,total);
-  var res={t:Date.now(),mode:s.mode,profile:s.profile,pname:s.pname,user:userName(),total:total,ok:ok,pct:p,pass:p>=PASS};
+  var res={t:Date.now(),mode:s.mode,profile:s.profile,pname:s.pname,user:userName(),ced:CUR?CUR.mask:'',total:total,ok:ok,pct:p,pass:p>=PASS};
   S.history.push(res);if(S.history.length>40)S.history=S.history.slice(-40);
   saveState();
   ui.result={res:res,per:per,items:s.items};ui.view='results';render();window.scrollTo(0,0);
@@ -1843,8 +1929,8 @@ function finish(){
 function resultsHTML(){
   var r=ui.result,res=r.res,passed=res.pct>=PASS,need=Math.max(0,Math.ceil(res.total*PASS/100)-res.ok);
   var cls=passed?'good':res.pct>=60?'mid':'low';
-  var head='<header class="top"><h1>Resultado</h1><p>'+esc(res.user||'')+(res.user?' · ':'')+esc(res.pname)+' · '+(res.mode==='exam'?'Simulacro':'Práctica')+' · '+new Date(res.t).toLocaleDateString('es-EC')+'</p></header>';
-  var msg=passed?'¡Muy bien'+(res.user?', '+esc(S.user?S.user.n:''):'')+'! Superaste la meta del '+PASS+' %.':'Te faltaron <b>'+need+'</b> respuesta'+(need===1?'':'s')+' correcta'+(need===1?'':'s')+' para llegar al '+PASS+' %. Revisa la guía de repaso y vuelve a intentarlo.';
+  var head='<header class="top"><h1>Resultado</h1><p>'+esc(res.user||'')+(res.ced?' ('+esc(res.ced)+')':'')+(res.user?' · ':'')+esc(res.pname)+' · '+(res.mode==='exam'?'Simulacro':'Práctica')+' · '+new Date(res.t).toLocaleDateString('es-EC')+'</p></header>';
+  var msg=passed?'¡Muy bien'+(CUR?', '+esc(CUR.n):'')+'! Superaste la meta del '+PASS+' %.':'Te faltaron <b>'+need+'</b> respuesta'+(need===1?'':'s')+' correcta'+(need===1?'':'s')+' para llegar al '+PASS+' %. Revisa la guía de repaso y vuelve a intentarlo.';
   var score='<section class="card score"><div class="donwrap">'+donutSVG(res.pct,150)+'</div><p class="verdict"><span class="pill big '+(passed?'good':'low')+'">'+(passed?'APROBADO':'NO APROBADO')+'</span></p><p><b>'+res.ok+'</b> de <b>'+res.total+'</b> correctas · meta '+PASS+' %</p><p class="muted">'+msg+'</p></section>';
   var cats=Object.keys(r.per).sort(function(a,b){return pct(r.per[a].ok,r.per[a].n)-pct(r.per[b].ok,r.per[b].n);});
   var per='<section class="card"><h3>Resultado por tema (del más bajo al más alto)</h3>'+legendHTML()+'<ul class="blist">'+cats.map(function(c){return barRow(catLabel(c),r.per[c].ok,r.per[c].n);}).join('')+'</ul></section>';
@@ -1875,7 +1961,10 @@ function likertHTML(){
 function render(){
   if(!$app)$app=document.getElementById('app');
   var html='';
-  if(ui.view==='home')html=homeHTML();
+  if(!CUR)ui.view='auth';
+  if(ui.view==='auth')html=authHTML();
+  else if(ui.view==='account')html=accountHTML();
+  else if(ui.view==='home')html=homeHTML();
   else if(ui.view==='quiz')html=quizHTML();
   else if(ui.view==='results')html=resultsHTML();
   else if(ui.view==='likert')html=likertHTML();
@@ -1902,13 +1991,56 @@ document.addEventListener('click',function(e){
   else if(a==='rmfile'){removeFile(id,+t.getAttribute('data-i'));}
   else if(a==='count'){S.count=id==='all'?'all':+id;saveState();render();}
   else if(a==='mode'){S.mode=id;saveState();render();}
-  else if(a==='saveuser'){
-    var n=(document.getElementById('uName')||{}).value||'',ap=(document.getElementById('uLast')||{}).value||'';
-    n=n.replace(/\s+/g,' ').trim();ap=ap.replace(/\s+/g,' ').trim();
-    if(n.length<2||ap.length<2){ui.nameErr='Escribe tu nombre y tu apellido (mínimo 2 letras cada uno).';ui.tmp={n:n,a:ap};render();return;}
-    S.user={n:n,a:ap};ui.nameErr='';ui.tmp=null;ui.editUser=false;saveState();render();
+  else if(a==='authced'){
+    var c=((document.getElementById('uCed')||{}).value||'').replace(/\D/g,''),rem=!!(document.getElementById('uRem')||{}).checked;
+    ui.auth.rem=rem;ui.auth.ced=c;
+    if(c.length!==10){ui.auth.err='La cédula debe tener 10 dígitos.';render();return;}
+    if(!validCedula(c)){ui.auth.err='Esa cédula no es válida. Revisa los números.';render();return;}
+    var id=userIdOf(c);
+    if(U.users[id]){openUser(id);U.last=rem?id:null;saveIndex();ui.auth={step:'ced',ced:'',rem:false,err:''};render();window.scrollTo(0,0);}
+    else{ui.auth={step:'new',ced:c,rem:rem,err:'',n:'',a:''};render();}
   }
-  else if(a==='edituser'){ui.editUser=true;ui.nameErr='';ui.tmp=null;render();}
+  else if(a==='authback'){ui.auth={step:'ced',ced:'',rem:ui.auth.rem,err:''};render();}
+  else if(a==='authnew'){
+    var A=ui.auth,g=function(i){return ((document.getElementById(i)||{}).value||'');};
+    var n=g('uName').replace(/\s+/g,' ').trim(),ap=g('uLast').replace(/\s+/g,' ').trim(),p1=g('uPin'),p2=g('uPin2');
+    A.n=n;A.a=ap;
+    if(n.length<2||ap.length<2){A.err='Escribe tu nombre y tu apellido (mínimo 2 letras cada uno).';render();return;}
+    if(!/^\d{4,6}$/.test(p1)){A.err='El PIN debe tener de 4 a 6 números.';render();return;}
+    if(p1!==p2){A.err='Los dos PIN no coinciden.';render();return;}
+    var nid=userIdOf(A.ced);
+    if(U.users[nid]){A.err='Esa cédula ya tiene usuario.';render();return;}
+    U.users[nid]={n:n,a:ap,mask:maskCed(A.ced),ph:pinHash(nid,p1),t:Date.now()};
+    if(A.rem)U.last=nid;
+    var claim=!!(document.getElementById('uLegacy')||{}).checked,old=null;
+    if(claim){try{old=JSON.parse(localStorage.getItem(KEY_OLD)||'null');}catch(e){old=null;}}
+    saveIndex();openUser(nid);
+    if(old){for(var k in old){if(k!=='user')S[k]=old[k];}normalizeState();try{localStorage.removeItem(KEY_OLD);}catch(e){}}
+    saveState();ui.auth={step:'ced',ced:'',rem:false,err:''};render();window.scrollTo(0,0);
+  }
+  else if(a==='logout'){if(U.last){U.last=null;saveIndex();}closeUser();render();window.scrollTo(0,0);}
+  else if(a==='account'){ui.view='account';ui.msg='';render();window.scrollTo(0,0);}
+  else if(a==='savename'){
+    var n2=((document.getElementById('uName')||{}).value||'').replace(/\s+/g,' ').trim(),a2=((document.getElementById('uLast')||{}).value||'').replace(/\s+/g,' ').trim();
+    if(n2.length<2||a2.length<2){ui.msg='Escribe nombre y apellido (mínimo 2 letras cada uno).';render();return;}
+    CUR.n=n2;CUR.a=a2;if(U.users[CUR.id]){U.users[CUR.id].n=n2;U.users[CUR.id].a=a2;saveIndex();}ui.msg='Nombre actualizado.';render();
+  }
+  else if(a==='deluser'){ui.pin={err:''};renderPin();}
+  else if(a==='pinno'){ui.pin=null;renderPin();}
+  else if(a==='pinyes'){
+    var pv=((document.getElementById('uPinDel')||{}).value||''),rec=U.users[CUR.id];
+    if(!rec){ui.pin=null;renderPin();return;}
+    if(rec.lock&&rec.lock>Date.now()){ui.pin={err:'Bloqueado por intentos fallidos. Inténtalo de nuevo en '+Math.ceil((rec.lock-Date.now())/60000)+' minuto(s).'};renderPin();return;}
+    if(pinHash(CUR.id,pv)!==rec.ph){
+      rec.f=(rec.f||0)+1;var left=5-rec.f;
+      if(rec.f>=5){rec.lock=Date.now()+10*60000;rec.f=0;ui.pin={err:'Demasiados intentos fallidos. Se bloqueó la eliminación por 10 minutos.'};}
+      else ui.pin={err:'PIN incorrecto. Intentos restantes: '+left+'.'};
+      saveIndex();renderPin();return;
+    }
+    var did=CUR.id;try{localStorage.removeItem(DKEY+did);}catch(e){}
+    delete U.users[did];if(U.last===did)U.last=null;saveIndex();ui.pin=null;
+    closeUser('Tu usuario y todos sus datos fueron eliminados de este dispositivo.');render();window.scrollTo(0,0);
+  }
   else if(a==='stats'){ui.view='stats';render();window.scrollTo(0,0);}
   else if(a==='statsprio'){
     var pp=PROFMAP[S.profile],lows=[];
@@ -1918,7 +2050,6 @@ document.addEventListener('click',function(e){
   }
   else if(a==='resetstats'){dlg('¿Borrar todo tu progreso (estadísticas, historial y errores guardados)? Tus archivos y tu nombre se conservan.',function(){S.cats={};S.history=[];S.wrong=[];saveState();render();},'Borrar');}
   else if(a==='start'){
-    if(!S.user||ui.editUser){ui.nameErr='Primero escribe tu nombre y apellido para comenzar.';ui.editUser=!S.user?false:ui.editUser;render();window.scrollTo(0,0);return;}
     var cats=selectedCats();startSession(buildQuestions(cats,S.count),S.mode);}
   else if(a==='review'){startSession(shuffle(S.wrong.slice()),'practice');}
   else if(a==='pick'){
@@ -1953,11 +2084,11 @@ document.addEventListener('change',function(e){
 });
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'&&ui.modal){ui.modal=null;render();}
-  if(e.key==='Enter'&&e.target&&(e.target.id==='uName'||e.target.id==='uLast')){var b=document.querySelector('[data-action=saveuser]');if(b)b.click();}
+  if(e.key==='Enter'&&e.target){var tid=e.target.id,act=tid==='uCed'?'authced':(tid==='uPin2'?'authnew':(tid==='uPinDel'?'pinyes':''));if(act){var bb=document.querySelector('[data-action='+act+']');if(bb)bb.click();}}
 });
 
 /* ---------- Inicio ---------- */
-function boot(){loadState();$app=document.getElementById('app');render();}
+function boot(){loadIndex();$app=document.getElementById('app');if(U.last&&U.users[U.last])openUser(U.last);render();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 
 })();
