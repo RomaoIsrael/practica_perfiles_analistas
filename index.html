@@ -158,6 +158,24 @@ input[type=text]:focus,input[type=password]:focus{outline:2px solid var(--ac);ou
 .btn.danger{color:var(--bad);border-color:var(--bad)}
 .btn.primary.danger{background:var(--bad);color:#fff;border-color:var(--bad)}
 .hello small{margin-left:4px}
+/* Panel de administrador */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.kpi{background:var(--bg);border:1px solid var(--br);border-radius:12px;padding:10px 12px}
+.kpi b{display:block;font-size:1.5rem;line-height:1.2}.kpi span{font-size:.8rem;color:var(--mu)}
+.chip.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.tscroll{overflow-x:auto;margin:8px 0}
+.atable{width:100%;border-collapse:collapse;font-size:.88rem;min-width:560px}
+.atable th{text-align:left;color:var(--mu);font-weight:600;padding:6px 8px;border-bottom:2px solid var(--br);white-space:nowrap}
+.atable td{padding:8px;border-bottom:1px solid var(--br)}
+.atable tr.clk{cursor:pointer}.atable tr.clk:hover td{background:var(--acbg)}
+.hlist{list-style:none;padding:0;margin:6px 0 0}
+.hrow{display:grid;grid-template-columns:minmax(80px,.8fr) 1.4fr;gap:4px 10px;align-items:center;padding:6px 0;font-size:.9rem}
+.hrow .hv{grid-column:1 / -1;color:var(--mu);font-size:.82rem;margin-top:-2px}
+.bar2 i.none2{background:var(--ac)}
+.ins{margin:6px 0 0;padding-left:20px}.ins li{padding:4px 0}
+.sdays{display:flex;gap:8px;padding:4px 4px 0}.sdays span{flex:1;text-align:center;font-size:.72rem;color:var(--mu)}
+.admlink{text-align:center;margin:18px 0 0}.admlink .lnk{font-size:.8rem;color:var(--mu)}
+.cons{max-height:88vh;overflow:auto}
 /* Diálogo de confirmación */
 .dlg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(6,12,20,.55);display:flex;align-items:center;justify-content:center;z-index:60;padding:16px}
 .dlg-b{background:var(--card);border:1px solid var(--br);border-radius:16px;padding:18px;max-width:420px;width:100%}
@@ -632,6 +650,9 @@ function validCedula(c){
 function maskCed(c){return c.slice(0,2)+'******'+c.slice(-2);}
 function userIdOf(c){return sha256('pcv3:ced:'+c).slice(0,20);}
 function pinHash(id,pin){return sha256('pcv3:pin:'+id+':'+pin);}
+
+/* ---- cfg.js ---- */
+var CFG={"endpoint": "https://script.google.com/macros/s/AKfycbxWi5NEi9hi9BoHjObyaO01djFpCHbPLc2VXJMBH7NF48gwZS99tXqG0GFvcNuxaYuS/exec", "contact": "romaoarlekin@gmail.com · tel. 0983886153", "ver": "3.1"};
 
 /* ---- legacy.js ---- */
 Qa("num","¿Qué número continúa la serie? 2, 6, 12, 20, 30, …",["40","42","44","36"],1,"Las diferencias entre términos son 4, 6, 8, 10 y la siguiente es 12. Entonces 30 + 12 = 42.");
@@ -1552,6 +1573,252 @@ var LIKERT=[
   ['org','Suelo dejar tareas para el último momento.',1]
 ];
 
+/* ---- telemetry.js ---- */
+/* =========================================================
+   ESTADÍSTICAS DE USO (opcional) Y PESTAÑA DE ADMINISTRADOR
+   Solo se activa si CFG.endpoint tiene la dirección del servicio.
+   Solo envía datos de quienes lo AUTORIZAN expresamente.
+   ========================================================= */
+var TQ_KEY='pcv3_q',tSending=false;
+function devType(){
+  var ua=(navigator.userAgent||'');
+  if(/iPad|Tablet/i.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1))return 'tablet';
+  if(/Mobi|Android|iPhone|iPod/i.test(ua))return 'movil';
+  return 'escritorio';
+}
+function consentOn(){var r=CUR&&U.users[CUR.id];return !!(r&&r.cons&&r.cons.v===1);}
+function loginData(first){return {n:CUR.n,a:CUR.a,mask:CUR.mask,dev:devType(),prof:S.profile,first:first?1:0};}
+function qload(){try{return JSON.parse(localStorage.getItem(TQ_KEY)||'[]');}catch(e){return [];}}
+function qsave(q){try{localStorage.setItem(TQ_KEY,JSON.stringify(q.slice(-300)));}catch(e){}}
+function tel(ty,d,force){
+  if(!CFG.endpoint||!CUR)return;
+  if(!force&&!consentOn())return;
+  var q=qload();
+  q.push({eid:'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,8),t:Date.now(),uid:CUR.id,ty:ty,d:d||{}});
+  qsave(q);tFlush();
+}
+function tFlush(){
+  if(!CFG.endpoint||tSending||typeof fetch!=='function')return;
+  var q=qload();if(!q.length)return;
+  var batch=q.slice(0,40);tSending=true;
+  fetch(CFG.endpoint,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({k:'ev',ev:batch})})
+    .then(function(r){return r.json();})
+    .then(function(j){
+      tSending=false;
+      if(j&&j.ok){var ids={};batch.forEach(function(e){ids[e.eid]=1;});qsave(qload().filter(function(e){return !ids[e.eid];}));if(qload().length)tFlush();}
+    })
+    .catch(function(){tSending=false;});
+}
+function deleteRemote(uid){
+  if(!CFG.endpoint||typeof fetch!=='function')return;
+  qsave(qload().filter(function(e){return e.uid!==uid;}));
+  try{fetch(CFG.endpoint,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({k:'del',uid:uid})}).catch(function(){});}catch(e){}
+}
+if(typeof window!=='undefined'&&window.addEventListener)window.addEventListener('online',function(){tFlush();});
+
+/* ---------- Consentimiento ---------- */
+function renderConsent(){
+  var old=document.querySelector('.consbox');
+  var need=CFG.endpoint&&CUR&&ui.view!=='auth'&&U.users[CUR.id]&&U.users[CUR.id].cons===undefined;
+  if(!need){if(old)old.remove();return;}
+  if(old)return;
+  var d=document.createElement('div');d.className='dlg consbox';
+  d.innerHTML='<div class="dlg-b cons" role="dialog" aria-modal="true" aria-labelledby="ctt"><h3 id="ctt" style="margin-top:0">¿Compartes tu progreso con el administrador?</h3>'+
+  '<p class="small">Con tu autorización, el administrador de esta aplicación puede recibir: tu <b>nombre y apellido</b>, tu <b>cédula oculta</b> (por ejemplo 17******65, nunca completa), tu <b>perfil</b>, el <b>tipo de dispositivo</b> y los <b>resultados de tus prácticas</b> (cantidad de preguntas, porcentaje y resultado por tema).</p>'+
+  '<p class="small"><b>No recibe</b> tus respuestas una por una, el contenido de tus archivos ni tu PIN. Se usa para entender cómo se usa la app y mejorarla.</p>'+
+  '<p class="small">Puedes retirar tu autorización y pedir que se borren tus datos cuando quieras, desde <b>Mi cuenta</b>. La app funciona igual si no aceptas.'+(CFG.contact?' Consultas: '+esc(CFG.contact)+'.':'')+'</p>'+
+  '<div class="nav"><button class="btn ghost" data-action="consno">No, gracias</button><button class="btn primary" data-action="consyes">Acepto</button></div></div>';
+  document.body.appendChild(d);
+}
+function setConsent(v){
+  var rec=U.users[CUR.id];if(!rec)return;
+  var wasNew=(Date.now()-(rec.t||0))<600000;
+  if(v===1){rec.cons={v:1,t:Date.now()};saveIndex();tel('consent',{v:1});tel('login',loginData(wasNew));}
+  else{
+    var had=rec.cons&&rec.cons.v===1;
+    if(had)tel('consent',{v:0},true);
+    rec.cons={v:0,t:Date.now()};saveIndex();
+    qsave(qload().filter(function(e){return e.uid!==CUR.id||e.ty==='consent';}));
+    tFlush();
+  }
+}
+function privacyHTML(){
+  if(!CFG.endpoint)return '';
+  var on=consentOn(),rec=U.users[CUR.id]||{};
+  return '<section class="card"><h3>Privacidad</h3><p class="muted small">'+(on?'Estás compartiendo tu progreso (nombre, cédula oculta, perfil, dispositivo y resultados) con el administrador.':'No estás compartiendo tu progreso con el administrador.')+'</p>'+
+    '<button class="btn ghost" data-action="constoggle">'+(on?'Dejar de compartir mi progreso':'Compartir mi progreso con el administrador')+'</button>'+
+    (rec.cons&&rec.cons.v!==undefined?'<button class="btn ghost danger" data-action="delremote">Pedir que se borren mis datos del servidor</button>':'')+
+    (ui.privMsg?'<p class="status" role="status">'+esc(ui.privMsg)+'</p>':'')+'</section>';
+}
+
+/* ---------- Acceso del administrador ---------- */
+function admJsonp(key){
+  return new Promise(function(res){
+    var cb='pcvcb'+Date.now(),s=document.createElement('script'),to;
+    function cleanup(){clearTimeout(to);try{delete window[cb];}catch(e){window[cb]=undefined;}if(s.parentNode)s.parentNode.removeChild(s);}
+    to=setTimeout(function(){cleanup();res(null);},15000);
+    window[cb]=function(j){cleanup();res(j);};
+    s.onerror=function(){cleanup();res(null);};
+    s.src=CFG.endpoint+(CFG.endpoint.indexOf('?')<0?'?':'&')+'callback='+cb+'&key='+encodeURIComponent(key);
+    document.head.appendChild(s);
+  });
+}
+function admFetch(key){
+  ui.adm.loading=true;ui.adm.err='';render();
+  var p;
+  try{
+    p=fetch(CFG.endpoint,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({k:'admin',key:key})}).then(function(r){return r.json();}).catch(function(){return admJsonp(key);});
+  }catch(e){p=admJsonp(key);}
+  p.then(function(j){
+    ui.adm.loading=false;
+    if(j&&j.ok){ui.adm.data=j;ui.adm.key=key;ui.adm.err='';}
+    else ui.adm.err=(j&&j.err==='auth')?'Clave incorrecta.':'No se pudo conectar con el servicio. Revisa la dirección configurada y tu conexión.';
+    render();
+  });
+}
+
+/* ---------- Cálculo de indicadores ---------- */
+function admKPI(D){
+  var now=Date.now(),DAY=86400000,K={};
+  var byU={};
+  D.users.forEach(function(u){byU[u.uid]={u:u,ses:[],days:{},starts:0,last:u.last||0,likert:null,imports:0};});
+  D.sessions.forEach(function(s){var b=byU[s.uid];if(b){b.ses.push(s);if(s.t>b.last)b.last=s.t;}});
+  var nStarts=0,likertN=0,importEv=0,importQs=0,likertSum={},likertCnt={};
+  D.events.forEach(function(e){
+    var b=byU[e.uid];if(!b)return;
+    if(e.ty==='login'){b.days[new Date(e.t).toDateString()]=1;if(e.t>b.last)b.last=e.t;}
+    else if(e.ty==='start')nStarts++;
+    else if(e.ty==='likert'){b.likert=e.d.scores||{};}
+    else if(e.ty==='import'){b.imports++;importEv++;importQs+=(e.d.n||0);}
+  });
+  var users=Object.keys(byU).map(function(k){return byU[k];});
+  K.byU=byU;K.users=users;K.nUsers=users.length;
+  K.new7=users.filter(function(b){return (b.u.first||0)>=now-7*DAY;}).length;
+  K.new30=users.filter(function(b){return (b.u.first||0)>=now-30*DAY;}).length;
+  K.act7=users.filter(function(b){return b.last>=now-7*DAY;}).length;
+  K.act30=users.filter(function(b){return b.last>=now-30*DAY;}).length;
+  K.returning=users.filter(function(b){return Object.keys(b.days).length>=2;}).length;
+  K.retention=pct(K.returning,K.nUsers);
+  K.nSes=D.sessions.length;K.nStarts=Math.max(nStarts,K.nSes);
+  K.completion=K.nStarts?pct(K.nSes,K.nStarts):0;
+  K.noSes=users.filter(function(b){return !b.ses.length;}).length;
+  var ok=0,tot=0,pass=0,secs=0;
+  D.sessions.forEach(function(s){ok+=s.ok;tot+=s.total;pass+=s.pass?1:0;secs+=s.secs||0;});
+  K.acc=pct(ok,tot);K.passRate=pct(pass,K.nSes);K.avgMin=K.nSes?Math.round(secs/K.nSes/60*10)/10:0;K.nQ=tot;
+  K.perUser=K.nUsers?Math.round(K.nSes/K.nUsers*10)/10:0;
+  /* por perfil, modo, dispositivo, tema, hora, día */
+  K.prof={};K.mode={};K.dev={};K.cat={};K.hour=[];K.day={};
+  for(var h=0;h<24;h++)K.hour.push(0);
+  users.forEach(function(b){var d=b.u.dev||'?';K.dev[d]=(K.dev[d]||0)+1;});
+  D.sessions.forEach(function(s){
+    var p=K.prof[s.prof]||(K.prof[s.prof]={ses:0,ok:0,tot:0,pass:0,u:{}});p.ses++;p.ok+=s.ok;p.tot+=s.total;p.pass+=s.pass?1:0;p.u[s.uid]=1;
+    K.mode[s.mode]=(K.mode[s.mode]||0)+1;
+    Object.keys(s.cats||{}).forEach(function(c){var x=K.cat[c]||(K.cat[c]={ok:0,n:0});x.ok+=s.cats[c][0];x.n+=s.cats[c][1];});
+    K.hour[new Date(s.t).getHours()]++;
+    var dk=new Date(s.t);dk.setHours(0,0,0,0);K.day[dk.getTime()]=(K.day[dk.getTime()]||0)+1;
+  });
+  users.forEach(function(b){if(b.likert){likertN++;Object.keys(b.likert).forEach(function(c){likertSum[c]=(likertSum[c]||0)+b.likert[c];likertCnt[c]=(likertCnt[c]||0)+1;});}});
+  K.likertN=likertN;K.likertPct=pct(likertN,K.nUsers);K.likertAvg={};Object.keys(likertSum).forEach(function(c){K.likertAvg[c]=Math.round(likertSum[c]/likertCnt[c]);});
+  K.importUsers=users.filter(function(b){return b.imports>0;}).length;K.importPct=pct(K.importUsers,K.nUsers);K.importEv=importEv;K.importQs=importQs;
+  return K;
+}
+function admInsights(K){
+  var out=[];
+  if(!K.nUsers)return ['Aún no hay usuarios que hayan autorizado compartir su progreso.'];
+  if(K.nUsers<10)out.push('Hay pocos usuarios ('+K.nUsers+'): tómalos como indicios, no como conclusiones firmes.');
+  if(K.noSes&&pct(K.noSes,K.nUsers)>=20)out.push(K.noSes+' de '+K.nUsers+' usuarios ('+pct(K.noSes,K.nUsers)+' %) se registraron pero no terminaron ninguna práctica. Mejora la primera experiencia: por ejemplo, empezar con 10 preguntas y temas preseleccionados.');
+  if(K.nStarts>=5&&K.completion<70)out.push('Solo el '+K.completion+' % de las prácticas iniciadas se terminan. Considera sesiones más cortas por defecto o guardar el avance.');
+  var hard=Object.keys(K.cat).filter(function(c){return K.cat[c].n>=20;}).map(function(c){return {c:c,p:pct(K.cat[c].ok,K.cat[c].n),n:K.cat[c].n};}).sort(function(a,b){return a.p-b.p;});
+  if(hard.length&&hard[0].p<60)out.push('El tema «'+catLabel(hard[0].c)+'» tiene solo '+hard[0].p+' % de aciertos ('+hard[0].n+' respuestas). Revisa si las preguntas son claras y agrega explicaciones o material de estudio.');
+  var unused=CATS.filter(function(c){return c.id!=='mis'&&hasContent(c.id)&&(!K.cat[c.id]||K.cat[c.id].n<10);});
+  if(K.nSes>=10&&unused.length)out.push(unused.length+' tema(s) casi no se practican (menos de 10 respuestas): '+unused.slice(0,4).map(function(c){return c.name;}).join(', ')+(unused.length>4?'…':'')+'. Puede que estén poco visibles o no interesen.');
+  var dv=K.dev,tD=(dv.movil||0)+(dv.tablet||0)+(dv.escritorio||0);
+  if(tD&&(dv.movil||0)/tD>=0.6)out.push('El '+pct(dv.movil,tD)+' % de los usuarios entra desde el celular: prioriza probar cada cambio en pantalla pequeña.');
+  if(K.nSes>=10&&K.passRate<30)out.push('Solo el '+K.passRate+' % de las prácticas alcanza el 80 %. Considera guías de estudio por tema antes de practicar.');
+  if(K.nUsers>=10&&K.retention<30)out.push('Solo el '+K.retention+' % de los usuarios vuelve en otro día. Podrías agregar metas semanales o recordatorios.');
+  var mx=0,mh=-1;K.hour.forEach(function(v,i){if(v>mx){mx=v;mh=i;}});
+  if(K.nSes>=10&&mh>=0)out.push('La mayor actividad ocurre alrededor de las '+mh+':00 h: buen momento para publicar cambios o avisos.');
+  if(K.nUsers>=10&&K.importPct<10)out.push('Solo el '+K.importPct+' % usa la carga de archivos. Si es una función importante, hazla más visible o explícala mejor.');
+  if(!out.length)out.push('No se detectan alertas con los datos actuales. Sigue observando la evolución.');
+  return out;
+}
+
+/* ---------- Pantalla de administrador ---------- */
+function hbar(label,val,max,txt){
+  var w=max?Math.round(val/max*100):0;
+  return '<li class="hrow"><span class="hl">'+esc(label)+'</span><div class="bar2"><i class="none2" style="width:'+w+'%"></i></div><span class="hv">'+esc(txt!=null?txt:val)+'</span></li>';
+}
+function fdate(t){if(!t)return '—';var d=new Date(t);return d.toLocaleDateString('es-EC')+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
+var DEVN={movil:'Celular',tablet:'Tablet / iPad',escritorio:'Computador'},MODEN={practice:'Práctica',exam:'Simulacro'};
+function kpi(v,l){return '<div class="kpi"><b>'+esc(v)+'</b><span>'+esc(l)+'</span></div>';}
+function usersTableHTML(K){
+  var q=noAcc(ui.adm.q||'');
+  var rows=K.users.filter(function(b){return !q||noAcc(b.u.n+' '+b.u.a+' '+b.u.mask).indexOf(q)>-1;}).sort(function(a,b){return b.last-a.last;});
+  if(!rows.length)return '<p class="muted">Sin resultados.</p>';
+  return '<div class="tscroll"><table class="atable"><tr><th>Persona</th><th>Cédula</th><th>Perfil</th><th>Prácticas</th><th>Aciertos</th><th>Mejor</th><th>Último acceso</th></tr>'+rows.map(function(b){
+    var ok=0,tot=0,best=0;b.ses.forEach(function(s){ok+=s.ok;tot+=s.total;if(s.pct>best)best=s.pct;});
+    var p=pct(ok,tot);
+    return '<tr class="clk" data-action="admuser" data-id="'+esc(b.u.uid)+'"><td>'+esc(b.u.n+' '+b.u.a)+'</td><td>'+esc(b.u.mask)+'</td><td>'+esc((PROFMAP[b.u.prof]||{}).short||b.u.prof||'—')+'</td><td>'+b.ses.length+'</td><td>'+(tot?'<b class="'+(p>=PASS?'good':p>=60?'mid':'low')+'">'+p+' %</b>':'—')+'</td><td>'+(b.ses.length?best+' %':'—')+'</td><td>'+fdate(b.last)+'</td></tr>';
+  }).join('')+'</table></div>';
+}
+function userDetailHTML(K,uid){
+  var b=K.byU[uid];if(!b)return '';
+  var cats={};b.ses.forEach(function(s){Object.keys(s.cats||{}).forEach(function(c){var x=cats[c]||(cats[c]={ok:0,n:0});x.ok+=s.cats[c][0];x.n+=s.cats[c][1];});});
+  var weak=Object.keys(cats).filter(function(c){return cats[c].n>=5;}).sort(function(a,c2){return pct(cats[a].ok,cats[a].n)-pct(cats[c2].ok,cats[c2].n);}).slice(0,5);
+  var recent=b.ses.slice().sort(function(x,y){return y.t-x.t;}).slice(0,8);
+  return '<section class="card"><h3>'+esc(b.u.n+' '+b.u.a)+' · '+esc(b.u.mask)+'</h3><p class="muted small">'+esc(DEVN[b.u.dev]||b.u.dev||'')+' · primer acceso '+fdate(b.u.first)+' · último '+fdate(b.last)+' · '+Object.keys(b.days).length+' día(s) con acceso</p>'+
+    (weak.length?'<h3>Temas más débiles</h3><ul class="blist">'+weak.map(function(c){return barRow(catLabel(c),cats[c].ok,cats[c].n);}).join('')+'</ul>':'<p class="muted">Aún sin datos por tema.</p>')+
+    (recent.length?'<h3>Últimos intentos</h3><ul class="hist">'+recent.map(function(s){return '<li><span>'+fdate(s.t)+' · '+esc((PROFMAP[s.prof]||{}).short||s.prof)+' · '+esc(MODEN[s.mode]||s.mode)+'</span><b class="'+(s.pct>=PASS?'good':s.pct>=60?'mid':'low')+'">'+s.ok+'/'+s.total+' ('+s.pct+' %)</b></li>';}).join('')+'</ul>':'')+
+    '<button class="btn ghost" data-action="admuser" data-id="">Cerrar detalle</button></section>';
+}
+function adminHTML(){
+  var A=ui.adm,head='<header class="top"><h1>Panel del administrador</h1><p>Uso de la aplicación · solo personas que autorizaron compartir su progreso</p></header>';
+  if(!CFG.endpoint)return head+'<section class="card"><p>Las estadísticas todavía no están configuradas en esta versión de la aplicación.</p><p class="muted small">Cuando se conecte el servicio de estadísticas, aquí verás el historial de usuarios, su avance y los indicadores de uso.</p><div class="nav stack"><button class="btn primary" data-action="admexit">Volver</button></div></section>';
+  if(!A.data)return head+'<section class="card"><h2>Ingresar</h2><p class="muted small">Escribe la clave de administrador. Se verifica en el servidor y no se guarda en este dispositivo.</p><label class="fl">Clave<input id="aKey" type="password" autocomplete="off" value=""></label>'+(A.err?'<p class="warn" role="alert">'+esc(A.err)+'</p>':'')+'<button class="btn primary big" data-action="admlogin"'+(A.loading?' disabled':'')+'>'+(A.loading?'Consultando…':'Entrar')+'</button><button class="btn ghost" data-action="admexit">Volver</button></section>';
+  var K=admKPI(A.data),tabs=[['resumen','Resumen'],['usuarios','Usuarios'],['temas','Temas'],['uso','Uso']];
+  var nav='<div class="chips" role="tablist">'+tabs.map(function(t){return '<button class="chip'+(A.tab===t[0]?' on':'')+'" data-action="admtab" data-id="'+t[0]+'">'+t[1]+'</button>';}).join('')+'</div><p class="muted small">Datos al '+fdate(A.data.generado)+'.</p>';
+  var body='';
+  if(A.tab==='resumen'){
+    var days=[],mx=0;for(var i=13;i>=0;i--){var d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-i);var v=K.day[d.getTime()]||0;days.push({d:d,v:v});if(v>mx)mx=v;}
+    body='<section class="card"><div class="kpis">'+kpi(K.nUsers,'Usuarios')+kpi(K.new7,'Nuevos (7 días)')+kpi(K.act7,'Activos (7 días)')+kpi(K.retention+' %','Vuelven otro día')+kpi(K.nSes,'Prácticas terminadas')+kpi(K.perUser,'Prácticas por usuario')+kpi(K.acc+' %','Aciertos en total')+kpi(K.passRate+' %','Prácticas con 80 % o más')+kpi(K.avgMin+' min','Duración media')+kpi(K.completion+' %','Prácticas que se terminan')+'</div></section>'+
+      '<section class="card"><h3>Qué conviene mejorar</h3><ul class="ins">'+admInsights(K).map(function(t){return '<li>'+esc(t)+'</li>';}).join('')+'</ul></section>'+
+      '<section class="card"><h3>Prácticas por día (últimos 14 días)</h3><div class="spark">'+days.map(function(x){var h=mx?Math.max(3,Math.round(x.v/mx*100)):3;return '<div class="sc"><small style="bottom:calc('+h+'% + 3px)">'+x.v+'</small><i class="none2" style="height:'+h+'%"></i></div>';}).join('')+'</div><div class="sdays">'+days.map(function(x){return '<span>'+x.d.getDate()+'</span>';}).join('')+'</div></section>';
+  }else if(A.tab==='usuarios'){
+    body='<section class="card"><label class="fl">Buscar por nombre o cédula<input id="aQ" type="text" value="'+esc(A.q)+'" autocomplete="off"></label><div id="aTable">'+usersTableHTML(K)+'</div><p class="muted small">Toca una fila para ver el detalle. El listado completo también está en tu hoja de Google.</p></section>'+(A.sel?userDetailHTML(K,A.sel):'');
+  }else if(A.tab==='temas'){
+    var cs=Object.keys(K.cat).sort(function(a,b){return pct(K.cat[a].ok,K.cat[a].n)-pct(K.cat[b].ok,K.cat[b].n);});
+    var unusedT=CATS.filter(function(c){return c.id!=='mis'&&hasContent(c.id)&&!K.cat[c.id];});
+    body='<section class="card"><h3>Aciertos por tema (del más difícil al más fácil)</h3>'+legendHTML()+'<ul class="blist">'+(cs.length?cs.map(function(c){return barRow(catLabel(c)+' · '+K.cat[c].n+' resp.',K.cat[c].ok,K.cat[c].n);}).join(''):'<li class="muted">Sin datos todavía.</li>')+'</ul></section>'+(unusedT.length?'<section class="card"><h3>Temas sin ninguna práctica</h3><p class="muted small">'+unusedT.map(function(c){return esc(c.name);}).join(' · ')+'</p></section>':'');
+  }else{
+    var pk=Object.keys(K.prof),mp=1;pk.forEach(function(k){if(K.prof[k].ses>mp)mp=K.prof[k].ses;});
+    var dk=Object.keys(K.dev),md=1;dk.forEach(function(k){if(K.dev[k]>md)md=K.dev[k];});
+    var hmx=Math.max.apply(null,K.hour.concat([1]));
+    body='<section class="card"><h3>Por perfil</h3><ul class="hlist">'+(pk.map(function(k){var p=K.prof[k];return hbar((PROFMAP[k]||{}).short||k,p.ses,mp,p.ses+' prácticas · '+Object.keys(p.u).length+' usuarios · '+pct(p.ok,p.tot)+' % aciertos');}).join('')||'<li class="muted">Sin datos.</li>')+'</ul></section>'+
+      '<section class="card"><h3>Por dispositivo (usuarios)</h3><ul class="hlist">'+(dk.map(function(k){return hbar(DEVN[k]||k,K.dev[k],md,K.dev[k]+' ('+pct(K.dev[k],K.nUsers)+' %)');}).join('')||'<li class="muted">Sin datos.</li>')+'</ul></section>'+
+      '<section class="card"><h3>Práctica o simulacro</h3><ul class="hlist">'+Object.keys(K.mode).map(function(k){return hbar(MODEN[k]||k,K.mode[k],K.nSes,K.mode[k]+' ('+pct(K.mode[k],K.nSes)+' %)');}).join('')+'</ul></section>'+
+      '<section class="card"><h3>Horas de mayor actividad</h3><div class="spark">'+K.hour.map(function(v,i){var h=Math.max(3,Math.round(v/hmx*100));return '<div class="sc"><i class="none2" style="height:'+h+'%"></i></div>';}).join('')+'</div><div class="sdays">'+K.hour.map(function(v,i){return '<span>'+(i%3===0?i:'')+'</span>';}).join('')+'</div><p class="muted small">Horas del día (0 a 23) en la zona horaria de este dispositivo.</p></section>'+
+      '<section class="card"><h3>Uso de funciones</h3><ul class="hlist">'+hbar('Cuestionario de competencias',K.likertN,K.nUsers,K.likertN+' usuarios ('+K.likertPct+' %)')+hbar('Carga de archivos',K.importUsers,K.nUsers,K.importUsers+' usuarios ('+K.importPct+' %) · '+K.importQs+' preguntas importadas')+'</ul>'+
+      (Object.keys(K.likertAvg).length?'<h3>Competencias: promedio de los usuarios (0 a 100)</h3><ul class="blist">'+COMPS.filter(function(c){return K.likertAvg[c.id]!==undefined;}).map(function(c){return barRow(c.name,K.likertAvg[c.id],100);}).join('')+'</ul>':'')+'</section>';
+  }
+  return head+'<div class="nav"><button class="btn ghost" data-action="admrefresh">Actualizar</button><button class="btn ghost" data-action="admlogout">Salir</button></div>'+nav+body;
+}
+
+/* ---------- Eventos de clic de este módulo ---------- */
+function telClick(a,t,id){
+  if(a==='consyes'){setConsent(1);renderConsent();return true;}
+  if(a==='consno'){setConsent(0);renderConsent();return true;}
+  if(a==='constoggle'){setConsent(consentOn()?0:1);ui.privMsg=consentOn()?'Ahora compartes tu progreso con el administrador.':'Dejaste de compartir tu progreso.';render();return true;}
+  if(a==='delremote'){deleteRemote(CUR.id);var r=U.users[CUR.id];if(r){r.cons={v:0,t:Date.now()};saveIndex();}ui.privMsg='Se envió la solicitud de borrado de tus datos del servidor y dejaste de compartir tu progreso.';render();return true;}
+  if(a==='admin'){ui.view='admin';render();window.scrollTo(0,0);return true;}
+  if(a==='admexit'){ui.view='auth';ui.adm.err='';render();return true;}
+  if(a==='admlogin'){var k=((document.getElementById('aKey')||{}).value||'');if(!k){ui.adm.err='Escribe la clave.';render();return true;}admFetch(k);return true;}
+  if(a==='admrefresh'){admFetch(ui.adm.key);return true;}
+  if(a==='admlogout'){ui.adm={key:'',loading:false,err:'',data:null,tab:'resumen',q:'',sel:null};ui.view='auth';render();return true;}
+  if(a==='admtab'){ui.adm.tab=id;ui.adm.sel=null;render();window.scrollTo(0,0);return true;}
+  if(a==='admuser'){ui.adm.sel=id||null;render();return true;}
+  return false;
+}
+
 /* ---- engine.js ---- */
 /* =========================================================
    MOTOR DE LA APLICACIÓN
@@ -1563,7 +1830,7 @@ function freshState(){return {profile:'sri',history:[],wrong:[],cats:{},imports:
 var S=freshState();            /* datos del usuario que tiene la sesión abierta */
 var CUR=null;                  /* {id,n,a,mask,t} usuario activo (la cédula no se guarda) */
 var U={users:{},last:null};    /* índice de usuarios de este dispositivo */
-var ui={view:'auth',auth:{step:'ced',ced:'',rem:false,err:''},modal:null,msg:'',busy:false,session:null,result:null,lk:null,memOnly:false,pinTry:0};
+var ui={view:'auth',auth:{step:'ced',ced:'',rem:false,err:''},modal:null,msg:'',busy:false,session:null,result:null,lk:null,memOnly:false,pinTry:0,adm:{key:'',loading:false,err:'',data:null,tab:'resumen',q:'',sel:null}};
 var BYCAT={};
 QS.forEach(function(q){(BYCAT[q.cat]=BYCAT[q.cat]||[]).push(q);});
 
@@ -1576,12 +1843,13 @@ function normalizeState(){
   if(!PROFMAP[S.profile])S.profile='sri';
   if(!S.sel)S.sel={};if(!S.imports)S.imports={};if(!S.wrong)S.wrong=[];if(!S.history)S.history=[];if(!S.cats)S.cats={};
 }
-function openUser(id){
+function openUser(id,isNew){
   var rec=U.users[id];if(!rec)return false;
   CUR={id:id,n:rec.n,a:rec.a,mask:rec.mask,t:rec.t};
   S=freshState();
   try{var r=localStorage.getItem(DKEY+id);if(r){var o=JSON.parse(r);for(var k in o)S[k]=o[k];}}catch(e){}
   normalizeState();ui.view='home';ui.session=null;ui.result=null;ui.modal=null;ui.msg='';
+  if(consentOn())tel('login',loginData(isNew));
   return true;
 }
 function closeUser(msg){
@@ -1915,6 +2183,7 @@ async function handleFiles(files){
       var r=parseAny(f.name,text,ext);
       if(!r.qs.length)throw new Error('No se pudieron obtener preguntas. Revisa el formato (ver ayuda abajo).');
       (S.imports[cat]=S.imports[cat]||[]).push({name:f.name,kind:r.kind,n:r.qs.length,t:Date.now(),qs:r.qs});
+      tel('import',{cat:cat,kind:r.kind,n:r.qs.length});
       msgs.push('✔ '+f.name+': '+r.qs.length+(r.kind==='preguntas'?' preguntas importadas':' preguntas de completar generadas de tus apuntes'));
     }catch(err){msgs.push('✖ '+f.name+': '+(err&&err.message?err.message:'no se pudo leer'));}
   }
@@ -1992,7 +2261,7 @@ function authHTML(){
   var A=ui.auth,head='<header class="top"><h1>Práctica para concursos</h1><p>Sector público · Ecuador</p></header>';
   var priv='<p class="muted small priv">🔒 Tu cédula no se guarda: solo una huella cifrada para reconocerte y una versión oculta (por ejemplo 17******65). Tu progreso queda únicamente en este dispositivo y nadie más lo recibe.</p>';
   if(A.step==='ced'){
-    return head+(A.ok?'<p class="okmsg" role="status">'+esc(A.ok)+'</p>':'')+'<section class="card user"><h2>Ingresar</h2><p class="muted small">Escribe tu número de cédula para abrir tu progreso. Si es tu primera vez, te pediremos crear tu usuario. Cada persona tiene su propio espacio, con sus estadísticas, errores y archivos.</p><label class="fl">Cédula de identidad<input id="uCed" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="10" placeholder="10 dígitos" value="'+esc(A.ced||'')+'"></label><label class="chk"><input type="checkbox" id="uRem"'+(A.rem?' checked':'')+'><span>Mantener mi sesión abierta en este dispositivo <small class="muted">(no lo marques si lo comparte otra persona)</small></span></label>'+(A.err?'<p class="warn" role="alert">'+esc(A.err)+'</p>':'')+'<button class="btn primary big" data-action="authced">Continuar</button></section>'+priv;
+    return head+(A.ok?'<p class="okmsg" role="status">'+esc(A.ok)+'</p>':'')+'<section class="card user"><h2>Ingresar</h2><p class="muted small">Escribe tu número de cédula para abrir tu progreso. Si es tu primera vez, te pediremos crear tu usuario. Cada persona tiene su propio espacio, con sus estadísticas, errores y archivos.</p><label class="fl">Cédula de identidad<input id="uCed" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="10" placeholder="10 dígitos" value="'+esc(A.ced||'')+'"></label><label class="chk"><input type="checkbox" id="uRem"'+(A.rem?' checked':'')+'><span>Mantener mi sesión abierta en este dispositivo <small class="muted">(no lo marques si lo comparte otra persona)</small></span></label>'+(A.err?'<p class="warn" role="alert">'+esc(A.err)+'</p>':'')+'<button class="btn primary big" data-action="authced">Continuar</button></section>'+priv+'<p class="admlink"><button class="lnk" data-action="admin">Administrador</button></p>';
   }
   var legacy=false;try{legacy=!!localStorage.getItem(KEY_OLD);}catch(e){}
   return head+'<section class="card user"><h2>Crear tu usuario</h2><p class="muted small">La cédula <b>'+esc(maskCed(A.ced))+'</b> todavía no tiene usuario en este dispositivo.</p><div class="frow"><label class="fl">Nombre<input id="uName" type="text" autocomplete="given-name" maxlength="40" value="'+esc(A.n||'')+'"></label><label class="fl">Apellido<input id="uLast" type="text" autocomplete="family-name" maxlength="40" value="'+esc(A.a||'')+'"></label></div><div class="frow"><label class="fl">PIN (4 a 6 dígitos)<input id="uPin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="6"></label><label class="fl">Repite el PIN<input id="uPin2" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="6"></label></div><p class="muted small">El PIN protege tu usuario: <b>sin él nadie puede eliminarlo</b>. Anótalo, porque no se puede recuperar.</p>'+(legacy?'<label class="chk"><input type="checkbox" id="uLegacy"><span>Traer el progreso que ya estaba guardado en este dispositivo <small class="muted">(marca solo si es tuyo)</small></span></label>':'')+(A.err?'<p class="warn" role="alert">'+esc(A.err)+'</p>':'')+'<button class="btn primary big" data-action="authnew">Crear usuario y entrar</button><button class="btn ghost" data-action="authback">Volver</button></section>'+priv;
@@ -2000,7 +2269,7 @@ function authHTML(){
 function accountHTML(){
   return '<header class="top"><h1>Mi cuenta</h1><p>'+esc(userName())+' · cédula '+esc(CUR.mask)+'</p></header>'+
   '<section class="card"><h3>Datos</h3><p class="muted small">Usuario creado el '+new Date(CUR.t||Date.now()).toLocaleDateString('es-EC')+'. Tu progreso está guardado solo en este dispositivo.</p><div class="frow"><label class="fl">Nombre<input id="uName" type="text" maxlength="40" value="'+esc(CUR.n)+'"></label><label class="fl">Apellido<input id="uLast" type="text" maxlength="40" value="'+esc(CUR.a)+'"></label></div>'+(ui.msg?'<p class="status" role="status">'+esc(ui.msg)+'</p>':'')+'<button class="btn primary" data-action="savename">Guardar nombre</button></section>'+
-  '<section class="card"><h3>Eliminar mi usuario</h3><p class="muted small">Borra de forma definitiva tu progreso, tus errores guardados y tus archivos de este dispositivo. Solo puede hacerlo quien conoce el PIN de este usuario.</p><button class="btn ghost danger" data-action="deluser">Eliminar mi usuario…</button></section>'+
+  '<section class="card"><h3>Eliminar mi usuario</h3><p class="muted small">Borra de forma definitiva tu progreso, tus errores guardados y tus archivos de este dispositivo. Solo puede hacerlo quien conoce el PIN de este usuario.</p><button class="btn ghost danger" data-action="deluser">Eliminar mi usuario…</button></section>'+privacyHTML()+
   '<div class="nav stack"><button class="btn primary" data-action="home">Volver al inicio</button><button class="btn ghost" data-action="logout">Cerrar sesión</button></div>';
 }
 function renderPin(){
@@ -2092,7 +2361,8 @@ function renderDlg(){
 function startSession(qs,mode){
   if(!qs.length){dlg('No hay preguntas en los temas elegidos. Marca al menos un tema con preguntas.',null,'Entendido',false);return;}
   var p=PROFMAP[S.profile];
-  ui.session={items:qs.map(function(q){return {q:q,order:shuffle(range(q.opts.length)),picked:null};}),i:0,mode:mode,profile:S.profile,pname:p.short,deadline:mode==='exam'?Date.now()+qs.length*60000:0,done:false};
+  ui.session={items:qs.map(function(q){return {q:q,order:shuffle(range(q.opts.length)),picked:null};}),i:0,mode:mode,profile:S.profile,pname:p.short,deadline:mode==='exam'?Date.now()+qs.length*60000:0,done:false,t0:Date.now()};
+  tel('start',{prof:S.profile,mode:mode,n:qs.length});
   ui.view='quiz';render();window.scrollTo(0,0);startTimer();
 }
 var timerId=null;
@@ -2139,6 +2409,8 @@ function finish(){
   var p=pct(ok,total);
   var res={t:Date.now(),mode:s.mode,profile:s.profile,pname:s.pname,user:userName(),ced:CUR?CUR.mask:'',total:total,ok:ok,pct:p,pass:p>=PASS};
   S.history.push(res);if(S.history.length>40)S.history=S.history.slice(-40);
+  var tc={};Object.keys(per).forEach(function(c){tc[c]=[per[c].ok,per[c].n];});
+  tel('session',{prof:s.profile,mode:s.mode,total:total,ok:ok,pct:p,pass:p>=PASS,secs:Math.round((Date.now()-(s.t0||Date.now()))/1000),cats:tc});
   saveState();
   ui.result={res:res,per:per,items:s.items};ui.view='results';render();window.scrollTo(0,0);
 }
@@ -2166,6 +2438,7 @@ function likertHTML(){
     LIKERT.forEach(function(it,k){var v=L.ans[k];if(v==null)return;if(it[2])v=6-v;sc[it[0]].s+=v;sc[it[0]].n++;});
     var rows=COMPS.map(function(c){var x=sc[c.id],p=x.n?Math.round((x.s/x.n-1)/4*100):0;return {c:c,p:p};});
     S.likert={t:Date.now(),scores:rows.map(function(r){return [r.c.id,r.p];})};saveState();
+    if(!L.sent){L.sent=1;var ls={};rows.forEach(function(r){ls[r.c.id]=r.p;});tel('likert',{scores:ls});}
     var low=rows.slice().sort(function(a,b){return a.p-b.p;}).slice(0,3);
     return '<header class="top"><h1>Tu perfil de competencias</h1><p>Autoevaluación</p></header><section class="card"><ul class="per">'+rows.map(function(r){return '<li><span>'+esc(r.c.name)+'</span><div class="bar"><i class="'+(r.p>=75?'good':r.p>=55?'mid':'low')+'" style="width:'+r.p+'%"></i></div><b>'+r.p+'</b></li>';}).join('')+'</ul><p class="muted small">Escala de 0 a 100. Por encima de 75: fortaleza; de 55 a 75: adecuado; por debajo de 55: conviene reforzar.</p></section><section class="card"><h3>Para reforzar primero</h3>'+low.map(function(r){return '<p><b>'+esc(r.c.name)+':</b> '+esc(r.c.tip)+'</p>';}).join('')+'<p class="muted small">Practica también el tema «Juicio situacional» para entrenar la toma de decisiones en escenarios laborales.</p></section><div class="nav stack"><button class="btn primary" data-action="home">Volver al inicio</button><button class="btn ghost" data-action="lkstart">Repetir</button></div>';
   }
@@ -2177,8 +2450,9 @@ function likertHTML(){
 function render(){
   if(!$app)$app=document.getElementById('app');
   var html='';
-  if(!CUR)ui.view='auth';
-  if(ui.view==='auth')html=authHTML();
+  if(!CUR&&ui.view!=='admin')ui.view='auth';
+  if(ui.view==='admin')html=adminHTML();
+  else if(ui.view==='auth')html=authHTML();
   else if(ui.view==='account')html=accountHTML();
   else if(ui.view==='home')html=homeHTML();
   else if(ui.view==='quiz')html=quizHTML();
@@ -2187,6 +2461,7 @@ function render(){
   else if(ui.view==='stats')html=statsHTML();
   $app.innerHTML=html;
   renderModal();
+  renderConsent();
 }
 
 /* ---------- Eventos ---------- */
@@ -2194,6 +2469,7 @@ document.addEventListener('click',function(e){
   var t=e.target.closest?e.target.closest('[data-action]'):null;if(!t)return;
   var a=t.getAttribute('data-action'),id=t.getAttribute('data-id');
   var p=PROFMAP[S.profile];
+  if(telClick(a,t,id))return;
   if(a==='profile'){S.profile=id;saveState();render();}
   else if(a==='tog'){return;}
   else if(a==='preset'){
@@ -2230,7 +2506,7 @@ document.addEventListener('click',function(e){
     if(A.rem)U.last=nid;
     var claim=!!(document.getElementById('uLegacy')||{}).checked,old=null;
     if(claim){try{old=JSON.parse(localStorage.getItem(KEY_OLD)||'null');}catch(e){old=null;}}
-    saveIndex();openUser(nid);
+    saveIndex();openUser(nid,true);
     if(old){for(var k in old){if(k!=='user')S[k]=old[k];}normalizeState();try{localStorage.removeItem(KEY_OLD);}catch(e){}}
     saveState();ui.auth={step:'ced',ced:'',rem:false,err:''};render();window.scrollTo(0,0);
   }
@@ -2253,7 +2529,8 @@ document.addEventListener('click',function(e){
       else ui.pin={err:'PIN incorrecto. Intentos restantes: '+left+'.'};
       saveIndex();renderPin();return;
     }
-    var did=CUR.id;try{localStorage.removeItem(DKEY+did);}catch(e){}
+    var did=CUR.id;var rr=U.users[did];if(rr&&rr.cons&&rr.cons.v!==undefined)deleteRemote(did);
+    try{localStorage.removeItem(DKEY+did);}catch(e){}
     delete U.users[did];if(U.last===did)U.last=null;saveIndex();ui.pin=null;
     closeUser('Tu usuario y todos sus datos fueron eliminados de este dispositivo.');render();window.scrollTo(0,0);
   }
@@ -2300,11 +2577,15 @@ document.addEventListener('change',function(e){
 });
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'&&ui.modal){ui.modal=null;render();}
-  if(e.key==='Enter'&&e.target){var tid=e.target.id,act=tid==='uCed'?'authced':(tid==='uPin2'?'authnew':(tid==='uPinDel'?'pinyes':''));if(act){var bb=document.querySelector('[data-action='+act+']');if(bb)bb.click();}}
+  if(e.key==='Enter'&&e.target){var tid=e.target.id,act=tid==='aKey'?'admlogin':tid==='uCed'?'authced':(tid==='uPin2'?'authnew':(tid==='uPinDel'?'pinyes':''));if(act){var bb=document.querySelector('[data-action='+act+']');if(bb)bb.click();}}
 });
 
+document.addEventListener('input',function(e){
+  var t=e.target;
+  if(t&&t.id==='aQ'){ui.adm.q=t.value;var el=document.getElementById('aTable');if(el&&ui.adm.data)el.innerHTML=usersTableHTML(admKPI(ui.adm.data));}
+});
 /* ---------- Inicio ---------- */
-function boot(){loadIndex();$app=document.getElementById('app');if(U.last&&U.users[U.last])openUser(U.last);render();}
+function boot(){loadIndex();$app=document.getElementById('app');if(U.last&&U.users[U.last])openUser(U.last);render();tFlush();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 
 })();
